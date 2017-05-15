@@ -7,13 +7,18 @@
 #include <sstream>
 #include <string>
 
+#include "myHybridFunctions.h"
+
 #include "TH1.h"
 
 //AnitaTools libs
-#include "../AnitaTools/include/FFTtools.h"
+#include "../../AnitaTools/include/FFTtools.h"
 
 using namespace std;
 using namespace FFTtools;
+
+
+const double PI  =3.141592653589793238463;
 
 
 
@@ -35,14 +40,14 @@ template <typename T> int myHybrid::sgn(T val)
 vector<double> myHybrid::unwrapFunction(vector<double> data)
 {
     int loops = 0;
-    vector<double> = out;
+    vector<double> out;
     for (int i = 0; i < data.size(); i++)
     {
         if ( abs(data[i] - data[i-1]) > 90 && i!=0 )
         {
             if ( sgn(data[i] - data[i-1]) == 1)
             {loops = loops-1;}
-            elseif ( sgn(data[i] - data[i-1]) == -1)
+            else if ( sgn(data[i] - data[i-1]) == -1)
             {loops = loops+1;}
         }
         out.push_back(data[i]+loops*360);
@@ -53,14 +58,14 @@ vector<double> myHybrid::unwrapFunction(vector<double> data)
 vector<vector<double> > myHybrid::unwrapFunction(vector<vector<double> > data)
 {
     int loops = 0;
-    vector<vector<double> > = out;
+    vector<vector<double> > out;
     for (int i = 0; i < data.size(); i++)
     {
         if ( abs(data[i][1] - data[i-1][1]) > 90 && i!=0 )
         {
             if ( sgn(data[i][1] - data[i-1][1]) == 1)
             {loops = loops-1;}
-            elseif ( sgn(data[i][1] - data[i-1][1]) == -1)
+            else if ( sgn(data[i][1] - data[i-1][1]) == -1)
             {loops = loops+1;}
         }
         vector<double> temp;
@@ -80,23 +85,23 @@ vector<vector<double> > myHybrid::unwrapFunction(vector<vector<double> > data)
 //NOTE!!! WE NEED TO DO SOMETHING TO MAKE SURE out IS THE SAME SIZE AS data1
 vector<vector<double> > myHybrid::matchFunction(vector<vector<double> > data1, vector<vector<double> > data2) 
 {
-    data1Spacing = data1[1][0]-data1[0][0];
-    iEnd = data2[data2.size()][0]/data1Spacing; //only needed if... something... idk
+    double data1Spacing = data1[1][0]-data1[0][0];
+    int iEnd = data2[data2.size()][0]/data1Spacing; //only needed if... something... idk
     vector<vector<double> > out;
     for( int i=0;i<iEnd; i++ )
     {
-        index = 0; 
-        data1here = data[0][0] + i*data1spacing;
+        int index = 0; 
+        double data1here = data1[0][0] + i*data1Spacing;
         //find points above and below current data2 position
-        for (int j=0;j < data2.size()-1 ,j++)
+        for (int j=0;j < data2.size()-1; j++)
         {
             if( data2[j][0] <=data1here && data2[j+1][0])
             {
                 index = j;
-                break();
+                break;
             }
         }
-        double m = (data2[index+1][1]-data2[index][1]) / (data2[index+1][0]-data2[index][0]));
+        double m = (data2[index+1][1]-data2[index][1]) / (data2[index+1][0]-data2[index][0]);
         double b = (data2[index][1] - m*data2[index][0]);
         vector < double > temp;
         temp.push_back(data1here);
@@ -108,26 +113,26 @@ vector<vector<double> > myHybrid::matchFunction(vector<vector<double> > data1, v
 
 vector<vector<complex<double> > > myHybrid::matchFunction(vector<vector<complex<double> > >data1, vector<vector<complex<double> > > data2)
 {
-    data1Spacing = data1[1][0].real()-data1[0][0].real();
-    iEnd = data2[data2.size()][0].real()/data1Spacing; //only needed if... something... idk
-    vector<vector<double> > out;
+    double data1Spacing = data1[1][0].real()-data1[0][0].real();
+    int iEnd = data2[data2.size()][0].real()/data1Spacing; //only needed if... something... idk
+    vector<vector<complex<double> > > out;
     for( int i=0;i<iEnd; i++ )
     {
-        index = 0; 
-        data1here = data[0][0].real() + i*data1spacing;
+        int index = 0; 
+        double data1here = data1[0][0].real() + i*data1Spacing;
         //find points above and below current data2 position
-        for (int j=0;j < data2.size()-1 ,j++)
+        for (int j=0;j < data2.size()-1; j++)
         {
             if( data2[j][0].real() <=data1here && data2[j+1][0].real())
             {
                 index = j;
-                break();
+                break;
             }
         }
-        double mReal = (data2[index+1][1].real()-data2[index][1].real()) / (data2[index+1][0].real()-data2[index][0].real()));
-        double mImag = (data2[index+1][1].imag()-data2[index][1].imag()) / (data2[index+1][0].real()-data2[index][0].real()));
-        double bReal = (data2[index][1].real() - m*data2[index][0]);
-        double bImag = (data2[index][1].imag() - m*data2[index][0]);
+        double mReal = (data2[index+1][1].real()-data2[index][1].real()) / (data2[index+1][0].real()-data2[index][0].real());
+        double mImag = (data2[index+1][1].imag()-data2[index][1].imag()) / (data2[index+1][0].real()-data2[index][0].real());
+        double bReal = (data2[index][1].real() - mReal*data2[index][0].real());
+        double bImag = (data2[index][1].imag() - mImag*data2[index][0].real());
         vector<complex<double> > temp;
         temp.push_back(complex<double>(data1here,0));
         temp.push_back(complex<double>(mReal*data1here + bReal,mImag*data1here + bImag));
@@ -156,33 +161,34 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
     vector<double> reZeros;
     vector<double> imZeros;
     //we only want to look for zeros in the valid range of our filter, ~100MHz-1.4GHz
-    int lowSearchBound = floor( (pow(10,8)-data1[0][0])/data1Spacing );
-    int highSearchBound = floor( (1.4*pow(10,9)-data1[0][0])/data1Spacing );
+    int lowSearchBound = floor( (pow(10,8)-data1[0][0].real())/data1Spacing );
+    int highSearchBound = floor( (1.4*pow(10,9)-data1[0][0].real())/data1Spacing );
     for ( int i=lowSearchBound; i<highSearchBound; i++)
     {
         if ( sgn(data1[i][1].real()) != sgn(data1[i+1][1].real()) )
-        { reZeros.push_back(data[i][0].real()); }
+        { reZeros.push_back(data1[i][0].real()); }
         if ( sgn(data1[i][1].imag()) != sgn(data1[i+1][1].imag()) )
-        { imZeros.push_back(data[i][0].imag()); }
+        { imZeros.push_back(data1[i][0].imag()); }
     }
     //define the wavelengths
     double reLambda = (reZeros[reZeros.size()]-reZeros[0])/(0.5*(reZeros.size()-1));
     double imLambda = (imZeros[imZeros.size()]-imZeros[0])/(0.5*(imZeros.size()-1));    
     //for phase matching we also need to find the LAST zero
-    double lastReZero lastImZero reShift imShift;
+    double lastReZero, lastImZero, reShift, imShift;
     for (int i=0; i< data1.size(); i++)
     {
         if ( sgn(data1[i][1].real()) != sgn(data1[i+1][1].real()) )
         {
             lastReZero = data1[i][0].real();
-            if ( sgn( data1[i+1][1].real() > 0 )
+            if ( sgn(data1[i+1][1].real()) > 0 )
             { reShift = 0.0*reLambda; } 
-            else { reShift = 0.5*reLambda; }
+            else 
+            { reShift = 0.5*reLambda; }
         }
         if ( sgn(data1[i][1].imag()) != sgn(data1[i+1][1].imag()) )
         {
             lastImZero = data1[i][0].imag();
-            if ( sgn( data1[i+1][1].imag() > 0 )
+            if ( sgn( data1[i+1][1].imag()) > 0 ) 
             { imShift = 0.0*imLambda; } 
             else 
             { imShift = 0.5*imLambda; }
@@ -197,9 +203,9 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
     
     //now populate the output
     vector<vector<complex<double> > > out;
-    for (int i=0; data<data1EndIndex; i++)
+    for (int i=0; i<data1EndIndex; i++)
     {
-        double data1Here = data1[0][0] + i*data1Spacing;
+        double data1Here = data1[0][0].real() + i*data1Spacing;
         if (i < data1.size())                                                  //if we have data, use that
         {
             out.push_back(data1[i]);
@@ -213,10 +219,10 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
                 temp.push_back(complex<double> (0,0));                        //the y coordinate
                 out.push_back(temp);
             } 
-            elseif (fill == 1)
+            else if (fill == 1)
             {
-                reFunction = reAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )*sin((2*PI/reLambda)*(data1Here-originalData1End) + rePhi);
-                imFunction = imAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )*sin((2*PI/imLambda)*(data1Here-originalData1End) + imPhi);
+                double reFunction = reAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )*sin((2*PI/reLambda)*(data1Here-originalData1End) + rePhi);
+                double imFunction = imAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )*sin((2*PI/imLambda)*(data1Here-originalData1End) + imPhi);
                 //note, this is what i had for mathematica
                 //if I want it to decay faster (Like i had in C++ before) then change endPoint->endPoint/2
                 vector<complex<double> > temp;
@@ -243,10 +249,9 @@ vector<vector<double> > myHybrid::pulsePadder ( vector< vector<double> > data , 
     vector<vector<double> > out;
     int iShift;
     if (centerType == 0)
-    { iShift = floor(size/2) }
-    else if (centerType == 1)
-    {
-        
+    { 
+        iShift = floor(size/2); 
+    } else if (centerType == 1) {        
         //need to find the peak
         double peakI = 0;
         for (int i=0; i<data.size(); i++)
@@ -255,9 +260,9 @@ vector<vector<double> > myHybrid::pulsePadder ( vector< vector<double> > data , 
             { peakI = data[i][1]; }
         }
         iShift = peakI;
+    } else if (centerType == 2) { 
+        iShift = 0; 
     }
-    else if (centerType == 2)
-    { iShift = 0; }
     for (int i=0; i<size ; i++)
     {
         vector<double> temp;
@@ -269,6 +274,7 @@ vector<vector<double> > myHybrid::pulsePadder ( vector< vector<double> > data , 
         } else {
             temp.push_back(i*(data[1][0]-data[0][0]));
             temp.push_back(0);
+            out.push_back(temp);
         }
     }
     return out;
@@ -282,7 +288,7 @@ vector<vector<double> > myHybrid::pulsePadder ( vector< vector<double> > data , 
 
 vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double > > > pulseData, vector< vector <complex <double> > > path1, vector< vector< complex<double> > > path2)
 {
-    double pulseSpacing = pulseData[1][0]-pulseData[0][0];
+    double pulseSpacing = pulseData[1][0].real()-pulseData[0][0].real();
     vector<complex<double> > outPath1;
     vector<complex<double> > outPath2;
     for ( int i=0; i<pulseData.size(); i++ )
@@ -291,12 +297,13 @@ vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double >
        outPath2.push_back( pulseData[i][1]*path2[i][1] );
     }
     //do the inv FFTW
-    FFTWComplex * outPath1FFT = vectortoFFTW (outPath1);
-    double outPath1FFTTime = doInvFFT(outPath1FFT); 
-    FFTWComplex * outPath2FFT = vectortoFFTW (outPath2);
-    double outPath2FFTTime = doInvFFT(outPath2FFT);
+    int outSize = (pulseData.size()-1)*2;
     
-    double outSize = (pulseData.size()-1)*2;
+    FFTWComplex * outPath1FFT = vectortoFFTW (outPath1);
+    double * outPath1FFTTime = doInvFFT(outSize, outPath1FFT); 
+    FFTWComplex * outPath2FFT = vectortoFFTW (outPath2);
+    double * outPath2FFTTime = doInvFFT(outSize, outPath2FFT);
+    
     double outSpacing = 1/(pulseSpacing*outSize)*pow(10,9);                 //should that be outSize,or pulseData.size()
     vector<vector<double> > out;
     for (int i=0; i<outSize ; i++)
@@ -315,17 +322,22 @@ vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double >
 /////pulse getting functions ////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
+//puts into units of [ns]
+//subtracts off DC voltage (/first bin, which is ~ the DC voltage)
+//pads the pulse.
 vector<vector<double> > myHybrid::timePulse ( vector< vector<double> > data)
 {
-    tPerSample = 4*pow(10,-11);
-    vector<vector<double> > out;
+    double tPerSample = 4*pow(10,-11);
+    vector<vector<double> > prePad;
     for (int i=0; i<data.size(); i++)
     {
         vector<double> temp;
         temp.push_back(data[i][0]*pow(10,9)+30);                            //convert to ns, and make it start at t=0
         temp.push_back(data[i][1]-data[0][1]);                              //subtract off DC
-        out.push_back(temp);
+        prePad.push_back(temp);
     }
+    vector<vector<double> > out = pulsePadder(prePad, pow(2,14), 0);        //pads to ~ 8 times the size with 0s
+    cout << prePad.size() << " " << out.size() << endl;
     return out;
 }
 
@@ -333,15 +345,14 @@ vector<vector<double> > myHybrid::timePulse ( vector< vector<double> > data)
 vector<vector<complex<double> > > myHybrid::freqPulse( vector< vector<double> > data)
 {
     vector<vector<double> > timeData = timePulse(data);
-    vector<vector<double> > paddedData = pulsePadder(timeData, pow(2,14), 0);
     
-    double doFFTinput [paddedData.size()];
-    for (int i=0; i < paddedData.size(); i++) 
-    { doFFTinput[i] = paddedData[i][1]; } 
-    int lengthFFT = pulseData.size()/2+1;                                                         //this is the size of the FFTWComplex * object we get back
-    FFTWComplex * pulseFFT = doFFT( pulseData.size() , doFFTinput);
+    double doFFTinput [timeData.size()];
+    for (int i=0; i < timeData.size(); i++) 
+    { doFFTinput[i] = timeData[i][1]; } 
+    int lengthFFT = timeData.size()/2+1;                                                          //this is the size of the FFTWComplex * object we get back
+    FFTWComplex * pulseFFT = doFFT( timeData.size() , doFFTinput);
     
-    double freqSpacing = 1/((paddedData[1][0]-paddedData[0][0])*pow(10,-9)*paddedData.size());    //because pulseData is in units of [ns]
+    double freqSpacing = 1/((timeData[1][0]-timeData[0][0])*pow(10,-9)*timeData.size());          //because pulseData is in units of [ns]
     vector<vector<complex<double> > > out = FFTWtovector(pulseFFT,lengthFFT,freqSpacing); 
     
     return out;
@@ -370,11 +381,11 @@ vector<vector<double> > myHybrid::getPhaseFunc( vector<vector<complex<double> > 
     vector<double> wrappedPulse;
     for (int i=0; i<data.size(); i++)
     {
-        wrappedPulse.push_back( (360/PI)*arctan(data[i][1].imag()/data[i][1].real()) );   
+        wrappedPulse.push_back( (360/PI)*atan(data[i][1].imag()/data[i][1].real()) );   
         //note we use the wrong correction here, we fix it down below
     }
     vector<vector<double> > out;
-    vector<double> unwrappedPulse = unwrapFuntion(wrappedPulse);
+    vector<double> unwrappedPulse = unwrapFunction(wrappedPulse);
     for (int i=0; i<data.size(); i++)
     {
         vector<double> temp;
@@ -393,59 +404,75 @@ vector<vector<double> > myHybrid::getPhaseFunc( vector<vector<complex<double> > 
 
 vector<vector<double> > myHybrid::getNAData( string fileLocation )
 {
-    vector<vector<double> > data
+    vector<vector<double> > data;
     string line;
-    ifstream myfile (fileLocation);
+    ifstream myfile (fileLocation.c_str());
     if (myfile.is_open())
     {
+        cout << "file '" << fileLocation << "' opened" << endl;
         int lineNum = 0;
         while( getline(myfile,line) )
         {
-            if (lineNum < 3) { continue; }                  //skip the first 3 lines
+            if (lineNum < 3) 
+            { 
+                lineNum++;
+                continue;                                   //skip the first 3 lines
+            }
             vector<double> lineVector;
             stringstream s(line);                           //istringstream or stringstream?
+            string field;
             int columnNum = 0;                          
             while (getline(s, field, ','))
             {
-                if (columnNum > 1) { continue; }            //skip the 3rd (last) column
+                if (columnNum > 1) 
+                { 
+                    columnNum++;
+                    continue;                               //skip the 3rd (last) column
+                }
                 stringstream fs( field );
                 double temp = 0.0;
-                field >> temp;
+                fs >> temp;
                 lineVector.push_back(temp);
             }
+            data.push_back(lineVector);
         }
-        data.push_back(lineVector);
     }
     myfile.close();
+    cout << "file '" << fileLocation << "' closed" << endl;
     return data;
 }
 
 vector<vector<double> > myHybrid::getPulseData( string fileLocation )
 {
-    vector<vector<double> > data
+    vector<vector<double> > data;
     string line;
-    ifstream myfile (fileLocation);
+    ifstream myfile (fileLocation.c_str());
     if (myfile.is_open())
     {
-        int lineNum = 0;
+        cout << "file '" << fileLocation << "' opened" << endl;
         while( getline(myfile,line) )
         {
-            if (lineNum < 6) { continue; }                  //skip the first 6 lines
             vector<double> lineVector;
             stringstream s(line);                           //istringstream or stringstream?
+            string field;
             int columnNum = 0;                          
             while (getline(s, field, ','))
             {
-                if (columnNum < 3) { continue; }            //skip the first 3 column
+                if (columnNum < 3) 
+                { 
+                    columnNum++;                
+                    continue;                               //skip the first 3 column
+                }
                 stringstream fs( field );
                 double temp = 0.0;
-                field >> temp;
+                fs >> temp;
                 lineVector.push_back(temp);
             }
+            data.push_back(lineVector);
         }
-        data.push_back(lineVector);
     }
     myfile.close();
+    cout << "file '" << fileLocation << "' closed" << endl;
     return data;
 }
 
@@ -458,15 +485,17 @@ vector<vector<double> > myHybrid::getPulseData( string fileLocation )
 //unwrap the phase data
 //calibrate S21 hybrid data by subtracting off cable corrections
 //combines logmag and phase into one complex value.
-vector< vector< complex< double > > >  myHybrid::rawToCalibReIm (
-    vector< vector<double> > hybridLogMag,
-    vector< vector<double> > cableLogMag,
-    vector< vector<double> > hybridPhase,
-    vector< vector<double> > cablePhase)
+vector< vector< complex< double > > >  myHybrid::rawToCalibReIm 
+    (vector< vector<double> > hybridLogMag, vector< vector<double> > cableLogMag,
+     vector< vector<double> > hybridPhase, vector< vector<double> > cablePhase)
 {
-    vector<vector<double> > unwrappedHybridPhase = unwrapFuntcion(hybridPhase);
-    vector<vector<double> > unwrappedCablePhase = unwrapFuntcion(cablePhase);
-    vector<vector<complex<double> > > out 
+    cout << "hybridLogMag size: " << hybridLogMag.size() << endl;
+    cout << "cableLogMag size: " << cableLogMag.size() << endl;
+    cout << "hybridPhase size: " << hybridPhase.size() << endl;
+    cout << "cablePhase size: " << cablePhase.size() << endl;
+    vector<vector<double> > unwrappedHybridPhase = unwrapFunction(hybridPhase);
+    vector<vector<double> > unwrappedCablePhase = unwrapFunction(cablePhase);
+    vector<vector<complex<double> > > out;
     for (int i=0; i<hybridLogMag.size(); i++)
     {
         vector<complex<double> > temp;
@@ -502,8 +531,8 @@ FFTWComplex * myHybrid::vectortoFFTW (vector<vector<complex<double> > > data)
     FFTWComplex * out = new FFTWComplex[data.size()];
     for (int i=0; i<data.size(); i++)
     {
-        out[i].re = data[i][1].real()
-        out[i].im = data[i][1].imag() 
+        out[i].re = data[i][1].real();
+        out[i].im = data[i][1].imag();
     }
     return out;
 }
@@ -513,8 +542,8 @@ FFTWComplex * myHybrid::vectortoFFTW (vector<complex<double> > data)
     FFTWComplex * out = new FFTWComplex[data.size()];
     for (int i=0; i<data.size(); i++)
     {
-        out[i].re = data[i].real()
-        out[i].im = data[i].imag() 
+        out[i].re = data[i].real();
+        out[i].im = data[i].imag(); 
     }
     return out;
 }
@@ -527,13 +556,13 @@ FFTWComplex * myHybrid::vectortoFFTW (vector<complex<double> > data)
 TH1D * myHybrid::histFunction ( vector<vector<double> > data, const char* title, const char* name )
 {
     int nBins = data.size();
-    binSize = data[1][0]-data[0][0];
+    double binSize = data[1][0]-data[0][0];
     double lowBound =  data[0][0] - binSize/2;
     double hiBound = data[data.size()][0] + binSize/2;
     TH1D * out = new TH1D( title, name, nBins, lowBound, hiBound );
     for (int i=0; i< data.size(); i++)
     {
-        out->fill(data[i][0],data[i][1]);
+        out->Fill(data[i][0],data[i][1]);
     }
     return out;
 }
@@ -542,19 +571,19 @@ TH1D * myHybrid::histFunction ( vector<vector<double> > data, const char* title,
 TH1D * myHybrid::histFunction ( vector<vector<complex<double> > > data, const char* title, const char* name, int reim )
 {
     int nBins = data.size();
-    binSize = data[1][0].real()-data[0][0].real();
+    double binSize = data[1][0].real()-data[0][0].real();
     double lowBound =  data[0][0].real() - binSize/2;
-    double hiBound = data[data.size()][0] + binSize/2;
+    double hiBound = data[data.size()][0].real() + binSize/2;
     TH1D * out = new TH1D( title, name, nBins, lowBound, hiBound );
     for (int i=0; i< data.size(); i++)
     {
         if (reim == 0) 
         {
-            out->fill(data[i][0].real(),data[i][1].real());
+            out->Fill(data[i][0].real(),data[i][1].real());
         } 
         else if (reim == 1)
         {
-            out->fill(data[i][0].real(),data[i][1].imag());
+            out->Fill(data[i][0].real(),data[i][1].imag());
         }
         else
         {
@@ -568,13 +597,13 @@ TH1D * myHybrid::histFunction ( vector<vector<complex<double> > > data, const ch
 TH1D * myHybrid::histFunction ( TGraph * data, const char* title, const char* name )
 {
     int nBins = data->GetN();
-    binSize = data->GetX()[1]-data->GetX()[0];
+    double binSize = data->GetX()[1]-data->GetX()[0];
     double lowBound =  data->GetX()[0] - binSize/2;
     double hiBound = data->GetX()[nBins] + binSize/2;
     TH1D * out = new TH1D( title, name, nBins, lowBound, hiBound );
-    for (int i=0; i< data.size(); i++)
+    for (int i=0; i< nBins; i++)
     {
-        out->fill(data->GetX()[i],data->GetY()[i]);
+        out->Fill(data->GetX()[i],data->GetY()[i]);
     }
     return out;
 }
@@ -586,20 +615,32 @@ TH1D * myHybrid::histFunction ( TGraph * data, const char* title, const char* na
 /////////////////////////////////////////////////////////////////////////////////
 
 //function to apply a shift to the incoming data by a number of 'shift' bins
-void myHybrid:histShift ( TH1D * data, int shift )
+void myHybrid::histShift ( TH1D * data, int shift )
 {
-    int numBins = data->GetNBins();
+    int numBins = data->GetNbinsX();
     double dataSpacing = data->GetBinContent(1) - data->GetBinContent(0);
     for (int i=0;i<numBins;i++)
     {
-        if ( (i+shift) < 0 || data->GetBins() < (i+shift) )
-        { data->SetBinContent( (i+shift)*dataSpacing, 0 );}
+        if ( (i+shift) < 0 || numBins < (i+shift) )
+        { 
+            data->SetBinContent( (i+shift)*dataSpacing, 0 );
+        }
         else
         {
-            data->SetBinContent( (i+shift)*dataSpacing , data->GetBinContent(i+shift) )
+            data->SetBinContent( (i+shift)*dataSpacing , data->GetBinContent(i+shift) );
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

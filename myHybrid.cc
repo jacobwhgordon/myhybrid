@@ -13,7 +13,7 @@
 #include <TCanvas.h>
 
 //AnitaTools libs
-#include "../AnitaTools/include/FFTtools.h"
+#include "../../AnitaTools/include/FFTtools.h"
 
 #include "myHybridFunctions.h"
 
@@ -34,7 +34,13 @@ int main()
     //import pulse
     cout << endl << "Importing Data" << endl;    
     loc = "data/PulseData/MiniFilter.csv";
-    vector<vector<double> > rawPulseData = mh.getPulseData(loc);    
+    vector<vector<double> > rawPulseData = mh.getPulseData(loc);  
+    
+    //getPulseData isnt working...
+    
+    
+    
+      
     //this will pad the pulse, and also subtract off the biase in voltage and convert the time to units of [ns]
     vector<vector<double> > pulseData = mh.timePulse(rawPulseData);
     //outcoming 2d vector should be 2^14 entries long.
@@ -44,8 +50,9 @@ int main()
     vector<vector<double> > rawPulseDataOutC = mh.getPulseData(loc);    
     vector<vector<double> > pulseDataOutC = mh.timePulse(rawPulseDataOutC);
 
-    
-    //cout << "Pulse Data: (" << pulseData[0].size() << " by " << pulseData.size() << " entry array)" << endl;
+    //cout << rawPulseData.size() << endl;
+    cout << "Raw Pulse Data: (" << rawPulseData[0].size() << " by " << rawPulseData.size() << " entry array)" << endl;    
+    cout << "Pulse Data: (" << pulseData[0].size() << " by " << pulseData.size() << " entry array)" << endl;
     //for (int i; i < pulseData.size(); i++)
     //{
     //    cout << "t=" << pulseData[i][0] << "  V=" << pulseData[i][1] << endl;
@@ -87,6 +94,11 @@ int main()
     vector<vector<complex<double> > > ADS21 = mh.rawToCalibReIm ( logMagADData, logMagCableData, phaseADData, phaseCableData );
     vector<vector<complex<double> > > BCS21 = mh.rawToCalibReIm ( logMagBCData, logMagCableData, phaseBCData, phaseCableData );
     vector<vector<complex<double> > > BDS21 = mh.rawToCalibReIm ( logMagBDData, logMagCableData, phaseBDData, phaseCableData );
+
+    cout << " ACS21.size() =       " << ACS21.size();
+    cout << " ACS21 endpoint =     " << ACS21[ACS21.size()-1][0].real() ;
+    cout << " ACS21 spacing =      " << ACS21[1][0].real()-ACS21[0][0].real();
+
     
     cout << "S21 Data Calibrated" << endl;
     cout << endl << "==================================================" << endl << endl;
@@ -336,27 +348,6 @@ int main()
 }
     
      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

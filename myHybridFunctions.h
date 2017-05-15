@@ -10,7 +10,7 @@
 #include "TH1.h"
 
 //AnitaTools libs
-#include "../AnitaTools/include/FFTtools.h"
+#include "../../AnitaTools/include/FFTtools.h"
 
 using namespace std;
 using namespace FFTtools;
@@ -48,6 +48,7 @@ TH1D * histFunction ( TGraph * , const char*, const char* );
 void histShift ( TH1D *, int );
 
 };
+
 
 
 
