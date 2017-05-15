@@ -41,9 +41,10 @@ vector<double> myHybrid::unwrapFunction(vector<double> data)
 {
     int loops = 0;
     vector<double> out;
-    for (int i = 0; i < data.size(); i++)
+    out.push_back(data[0]);                           //first data point will have no loops.
+    for (int i = 1; i < data.size(); i++)
     {
-        if ( abs(data[i] - data[i-1]) > 90 && i!=0 )
+        if ( abs(data[i] - data[i-1]) > 90 )
         {
             if ( sgn(data[i] - data[i-1]) == 1)
             {loops = loops-1;}
@@ -59,9 +60,10 @@ vector<vector<double> > myHybrid::unwrapFunction(vector<vector<double> > data)
 {
     int loops = 0;
     vector<vector<double> > out;
-    for (int i = 0; i < data.size(); i++)
+    out.push_back(data[0]);                           //first data point will have no loops.
+    for (int i = 1; i < data.size(); i++)
     {
-        if ( abs(data[i][1] - data[i-1][1]) > 90 && i!=0 )
+        if ( abs(data[i][1] - data[i-1][1]) > 90 )
         {
             if ( sgn(data[i][1] - data[i-1][1]) == 1)
             {loops = loops-1;}
@@ -86,8 +88,9 @@ vector<vector<double> > myHybrid::unwrapFunction(vector<vector<double> > data)
 vector<vector<double> > myHybrid::matchFunction(vector<vector<double> > data1, vector<vector<double> > data2) 
 {
     double data1Spacing = data1[1][0]-data1[0][0];
-    int iEnd = data2[data2.size()][0]/data1Spacing; //only needed if... something... idk
-    vector<vector<double> > out;
+    int iEnd = data1.size();                                                     //we want a data 2 point at each data1 point
+    //int iEnd = data2[data2.size()-1][0]/data1Spacing;                          //only needed if... something... idk
+    vector<vector<double> > out;                                                 //I think it was incase data2 had more points than data1?
     for( int i=0;i<iEnd; i++ )
     {
         int index = 0; 
@@ -114,13 +117,14 @@ vector<vector<double> > myHybrid::matchFunction(vector<vector<double> > data1, v
 vector<vector<complex<double> > > myHybrid::matchFunction(vector<vector<complex<double> > >data1, vector<vector<complex<double> > > data2)
 {
     double data1Spacing = data1[1][0].real()-data1[0][0].real();
-    int iEnd = data2[data2.size()][0].real()/data1Spacing; //only needed if... something... idk
+    int iEnd = data1.size();                                                     //we want a data 2 point at each data1 point
+    //int iEnd = data2[data2.size()-1][0].real()/data1Spacing;                   //only needed if... something... idk
     vector<vector<complex<double> > > out;
-    for( int i=0;i<iEnd; i++ )
+    for( int i=0;i<iEnd; i++ )                                                   //iEnd could just be data1.size()
     {
         int index = 0; 
-        double data1here = data1[0][0].real() + i*data1Spacing;
-        //find points above and below current data2 position
+        double data1here = data1[0][0].real() + i*data1Spacing;                  //data1here could just be data1[i][0]
+        //find points above and below current data2 position                     //why did i do it this way...
         for (int j=0;j < data2.size()-1; j++)
         {
             if( data2[j][0].real() <=data1here && data2[j+1][0].real())
@@ -138,6 +142,10 @@ vector<vector<complex<double> > > myHybrid::matchFunction(vector<vector<complex<
         temp.push_back(complex<double>(mReal*data1here + bReal,mImag*data1here + bImag));
         out.push_back(temp);
     }
+    //cout << "size of data1: " << data1.size() << endl;
+    //cout << "size of data2: " << data2.size() << endl;
+    //cout << "size of iEnd: " << iEnd << endl;
+    //cout << "size of out: " << out.size() << endl;
     return out;
 }
 
@@ -152,9 +160,9 @@ vector<vector<complex<double> > > myHybrid::matchFunction(vector<vector<complex<
 //if fill = 1, Fill with freq and phase matched sine function in logistic function envolope. for smoothness.
 vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex< double > > > data1, vector< vector< complex< double > > > data2, int fill)
 {
-    double endPoint = data2[data2.size()][0].real();
+    double endPoint = data2[data2.size()-1][0].real();
     double data1Spacing = data1[1][0].real() - data1[0][0].real();
-    double originalData1End = data1[data1.size()][0].real();                     //where data1 ends before being extended
+    double originalData1End = data1[data1.size()-1][0].real();                     //where data1 ends before being extended
     int data1EndIndex = floor( (endPoint-data1[0][0].real())/data1Spacing );   //+1?   //the index where data1 should end after being extended
     
     //we need to find the wavelengths of the re and imag parts, do this by scanning for zeros.
@@ -171,11 +179,12 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
         { imZeros.push_back(data1[i][0].imag()); }
     }
     //define the wavelengths
-    double reLambda = (reZeros[reZeros.size()]-reZeros[0])/(0.5*(reZeros.size()-1));
-    double imLambda = (imZeros[imZeros.size()]-imZeros[0])/(0.5*(imZeros.size()-1));    
+    double reLambda = (reZeros[reZeros.size()-1]-reZeros[0])/(0.5*(reZeros.size()-1));
+    double imLambda = (imZeros[imZeros.size()-1]-imZeros[0])/(0.5*(imZeros.size()-1));   
+     
     //for phase matching we also need to find the LAST zero
     double lastReZero, lastImZero, reShift, imShift;
-    for (int i=0; i< data1.size(); i++)
+    for (int i=0; i< data1.size()-1; i++)
     {
         if ( sgn(data1[i][1].real()) != sgn(data1[i+1][1].real()) )
         {
@@ -198,8 +207,8 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
     //are at the end of the data 1 data before populating the output.
     double rePhi = (2*PI)/reLambda * (originalData1End-lastReZero+reShift);
     double imPhi = (2*PI)/imLambda * (originalData1End-lastImZero+imShift);
-    double reAmp = data1[data1.size()][1].real()/sin(rePhi);
-    double imAmp = data1[data1.size()][1].imag()/sin(imPhi);
+    double reAmp = data1[data1.size()-1][1].real()/sin(rePhi);
+    double imAmp = data1[data1.size()-1][1].imag()/sin(imPhi);
     
     //now populate the output
     vector<vector<complex<double> > > out;
@@ -288,6 +297,9 @@ vector<vector<double> > myHybrid::pulsePadder ( vector< vector<double> > data , 
 
 vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double > > > pulseData, vector< vector <complex <double> > > path1, vector< vector< complex<double> > > path2)
 {
+    //cout << "size of pulseData: " << pulseData.size() << endl;
+    //cout << "size of path1: " << path1.size() << endl;
+    //cout << "size of path2: " << path2.size() << endl;
     double pulseSpacing = pulseData[1][0].real()-pulseData[0][0].real();
     vector<complex<double> > outPath1;
     vector<complex<double> > outPath2;
@@ -489,10 +501,6 @@ vector< vector< complex< double > > >  myHybrid::rawToCalibReIm
     (vector< vector<double> > hybridLogMag, vector< vector<double> > cableLogMag,
      vector< vector<double> > hybridPhase, vector< vector<double> > cablePhase)
 {
-    cout << "hybridLogMag size: " << hybridLogMag.size() << endl;
-    cout << "cableLogMag size: " << cableLogMag.size() << endl;
-    cout << "hybridPhase size: " << hybridPhase.size() << endl;
-    cout << "cablePhase size: " << cablePhase.size() << endl;
     vector<vector<double> > unwrappedHybridPhase = unwrapFunction(hybridPhase);
     vector<vector<double> > unwrappedCablePhase = unwrapFunction(cablePhase);
     vector<vector<complex<double> > > out;
@@ -558,7 +566,7 @@ TH1D * myHybrid::histFunction ( vector<vector<double> > data, const char* title,
     int nBins = data.size();
     double binSize = data[1][0]-data[0][0];
     double lowBound =  data[0][0] - binSize/2;
-    double hiBound = data[data.size()][0] + binSize/2;
+    double hiBound = data[data.size()-1][0] + binSize/2;
     TH1D * out = new TH1D( title, name, nBins, lowBound, hiBound );
     for (int i=0; i< data.size(); i++)
     {
@@ -573,7 +581,7 @@ TH1D * myHybrid::histFunction ( vector<vector<complex<double> > > data, const ch
     int nBins = data.size();
     double binSize = data[1][0].real()-data[0][0].real();
     double lowBound =  data[0][0].real() - binSize/2;
-    double hiBound = data[data.size()][0].real() + binSize/2;
+    double hiBound = data[data.size()-1][0].real() + binSize/2;
     TH1D * out = new TH1D( title, name, nBins, lowBound, hiBound );
     for (int i=0; i< data.size(); i++)
     {
@@ -631,6 +639,10 @@ void myHybrid::histShift ( TH1D * data, int shift )
         }
     }
 }
+
+
+
+
 
 
 

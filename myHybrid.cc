@@ -97,7 +97,7 @@ int main()
 
     cout << " ACS21.size() =       " << ACS21.size();
     cout << " ACS21 endpoint =     " << ACS21[ACS21.size()-1][0].real() ;
-    cout << " ACS21 spacing =      " << ACS21[1][0].real()-ACS21[0][0].real();
+    cout << " ACS21 spacing =      " << ACS21[1][0].real()-ACS21[0][0].real() << endl;
 
     
     cout << "S21 Data Calibrated" << endl;
@@ -124,6 +124,9 @@ int main()
     cout << endl << "==================================================" << endl << endl;
     
     cout << "'Extending' S21 Data" << endl;
+    
+    //cout << "pulseFreq size: " << pulseFreq.size() << endl;
+    //cout << "ACS21     size: " << ACS21.size() << endl;
     
     vector<vector<complex<double> > > extendAC = mh.extendS21 ( ACS21, pulseFreq, 1);
     vector<vector<complex<double> > > extendAD = mh.extendS21 ( ADS21, pulseFreq, 1);
@@ -157,6 +160,7 @@ int main()
     cout << " AC spacing =         " << AC[1][0].real() - AC[0][0].real();
     cout << " pulseFreq spacing =  " << pulseFreq[1][0].real()-pulseFreq[0][0].real() << endl;
     */
+    
     cout << endl << "==================================================" << endl << endl;
     
     cout << "Applying transfer function to pulse, inverse FFT back into time domain and summing hybrid port outputs" << endl;
@@ -348,6 +352,9 @@ int main()
 }
     
      
+
+
+
 
 
 
