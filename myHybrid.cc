@@ -27,7 +27,7 @@ int main()
     myHybrid mh;
     string loc;
     
-    TCanvas* myCanv = new TCanvas("myCanv", "title", 600, 600);                    // instantiate, name must be unique
+    TCanvas* myCanv = new TCanvas("myCanv", "title", 800, 600);                    // instantiate, name must be unique
     myCanv->cd();                                                                  // select the canvas for display
     
         
@@ -95,9 +95,9 @@ int main()
     vector<vector<complex<double> > > BCS21 = mh.rawToCalibReIm ( logMagBCData, logMagCableData, phaseBCData, phaseCableData );
     vector<vector<complex<double> > > BDS21 = mh.rawToCalibReIm ( logMagBDData, logMagCableData, phaseBDData, phaseCableData );
 
-    cout << " ACS21.size() =       " << ACS21.size();
-    cout << " ACS21 endpoint =     " << ACS21[ACS21.size()-1][0].real() ;
-    cout << " ACS21 spacing =      " << ACS21[1][0].real()-ACS21[0][0].real() << endl;
+    //cout << " ACS21.size() =       " << ACS21.size();
+    //cout << " ACS21 endpoint =     " << ACS21[ACS21.size()-1][0].real() ;
+    //cout << " ACS21 spacing =      " << ACS21[1][0].real()-ACS21[0][0].real() << endl;
 
     
     cout << "S21 Data Calibrated" << endl;
@@ -143,6 +143,14 @@ int main()
     vector<vector<complex<double> > > BC = mh.matchFunction (pulseFreq, extendBC);
     vector<vector<complex<double> > > BD = mh.matchFunction (pulseFreq, extendBD);
     
+    /*
+    for (int i=0; i<AC.size(); i++)
+    {
+        cout << "extend:  (" << extendAC[i][0].real() << "," << extendAC[i][1].real() << " + i*" << extendAC[i][1].imag() << ")" << endl; 
+        cout << "matched: (" << AC[i][0].real() << "," << AC[i][1].real() << " + i*" << AC[i][1].imag() << ")" << endl; 
+    }
+    */
+       
     cout << "S21 and freqPulse data matched" << endl;
     
     /*
@@ -202,7 +210,8 @@ int main()
 
     //note outC and outD are exactly the same with this methoid     
     hilbertHist->Add(pulseDataHist,-1);                                               //subtract the hilbertHist fromthe pulseDataHist
-    hilbertHist->Scale(-1*pow(2,-0.5));                                                  //nomalize by 1/root(2), extra neg because the above subtraction was backwords
+    hilbertHist->Scale(-1*pow(2,-0.5));                                               //nomalize by 1/root(2), extra neg because the 
+                                                                                      //above subtraction was backwords
      
     hilbertHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                  //set y axis
     hilbertHist->GetXaxis()->SetRangeUser(350,450);                                   //set x axis
@@ -210,6 +219,13 @@ int main()
     myCanv->SaveAs("plots/hilbertData.jpg");                                          // saves the plot
     myCanv->SaveAs("plots/hilbertData.root");
     
+    /*
+    cout << "pulseData spacing: " << pulseData[1][0]-pulseData[0][0] << endl;
+    cout << "pulseX spacing: " << pulseX[1]-pulseX[0] << endl;    
+    cout << "pulseGraph spacing: " << pulseGraph->GetX()[1]-pulseGraph->GetX()[0] << endl;
+    cout << "hilbert spacing: " << hilbert->GetX()[1]-hilbert->GetX()[0] << endl;
+    cout << "hibertHist spacing: " << hilbertHist->GetXaxis()->GetBinCenter(2) - hilbertHist->GetXaxis()->GetBinCenter(1) << endl;  
+    */
 
 
     cout << endl << "==================================================" << endl << endl;
@@ -297,13 +313,15 @@ int main()
     //hilbert and outC are already made, so just need to create outCData
     TH1D * outCDataHist = mh.histFunction(pulseDataOutC, "name", "pulseDataOutC");  
     outCDataHist->GetYaxis()->SetRangeUser(-0.16,0.16);                              //set y axis
-    outCDataHist->GetXaxis()->SetRangeUser(350,400);                               //set x axis
+    outCDataHist->GetXaxis()->SetRangeUser(350,420);                               //set x axis
     outCDataHist->Draw();                                                          // Draw the histogram
     
+    mh.histShift(outCHist,1000);
     outCHist->SetLineColor(kRed);
     outCHist->Draw("same");
-    pulseDataHist->SetLineColor(kBlue);
-    pulseDataHist->Draw("same");
+    mh.histShift(hilbertHist,0);
+    hilbertHist->SetLineColor(kBlue);
+    hilbertHist->Draw("same");
     myCanv->SaveAs("plots/outCAll.jpg");
     myCanv->SaveAs("plots/outCAll.root");
     
@@ -352,6 +370,16 @@ int main()
 }
     
      
+
+
+
+
+
+
+
+
+
+
 
 
 

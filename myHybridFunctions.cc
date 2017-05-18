@@ -98,7 +98,7 @@ vector<vector<double> > myHybrid::matchFunction(vector<vector<double> > data1, v
         //find points above and below current data2 position
         for (int j=0;j < data2.size()-1; j++)
         {
-            if( data2[j][0] <=data1here && data2[j+1][0])
+            if( data2[j][0] <= data1here &&  data1here <= data2[j+1][0])
             {
                 index = j;
                 break;
@@ -127,7 +127,7 @@ vector<vector<complex<double> > > myHybrid::matchFunction(vector<vector<complex<
         //find points above and below current data2 position                     //why did i do it this way...
         for (int j=0;j < data2.size()-1; j++)
         {
-            if( data2[j][0].real() <=data1here && data2[j+1][0].real())
+            if( data2[j][0].real() <= data1here && data1here <= data2[j+1][0].real() )
             {
                 index = j;
                 break;
@@ -163,8 +163,10 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
     double endPoint = data2[data2.size()-1][0].real();
     double data1Spacing = data1[1][0].real() - data1[0][0].real();
     double originalData1End = data1[data1.size()-1][0].real();                     //where data1 ends before being extended
-    int data1EndIndex = floor( (endPoint-data1[0][0].real())/data1Spacing );   //+1?   //the index where data1 should end after being extended
+    int data1EndIndex = floor( (endPoint-data1[0][0].real())/data1Spacing )+1;     //the index where data1 should end after being extended
     
+    //cout << data1.size() << " " << data2.size() << " " << data1EndIndex << endl;
+        
     //we need to find the wavelengths of the re and imag parts, do this by scanning for zeros.
     vector<double> reZeros;
     vector<double> imZeros;
@@ -176,7 +178,7 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
         if ( sgn(data1[i][1].real()) != sgn(data1[i+1][1].real()) )
         { reZeros.push_back(data1[i][0].real()); }
         if ( sgn(data1[i][1].imag()) != sgn(data1[i+1][1].imag()) )
-        { imZeros.push_back(data1[i][0].imag()); }
+        { imZeros.push_back(data1[i][0].real()); }
     }
     //define the wavelengths
     double reLambda = (reZeros[reZeros.size()-1]-reZeros[0])/(0.5*(reZeros.size()-1));
@@ -196,7 +198,7 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
         }
         if ( sgn(data1[i][1].imag()) != sgn(data1[i+1][1].imag()) )
         {
-            lastImZero = data1[i][0].imag();
+            lastImZero = data1[i][0].real();
             if ( sgn( data1[i+1][1].imag()) > 0 ) 
             { imShift = 0.0*imLambda; } 
             else 
@@ -209,6 +211,8 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
     double imPhi = (2*PI)/imLambda * (originalData1End-lastImZero+imShift);
     double reAmp = data1[data1.size()-1][1].real()/sin(rePhi);
     double imAmp = data1[data1.size()-1][1].imag()/sin(imPhi);
+    
+    //cout << imLambda << " " << lastImZero << " " << imShift << " " << imPhi << " " << imAmp << endl;
     
     //now populate the output
     vector<vector<complex<double> > > out;
@@ -237,6 +241,7 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
                 vector<complex<double> > temp;
                 temp.push_back(complex<double>(data1Here,0));
                 temp.push_back(complex<double>(reFunction,imFunction));
+                out.push_back(temp);
             }
         }
     }
@@ -305,6 +310,7 @@ vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double >
     vector<complex<double> > outPath2;
     for ( int i=0; i<pulseData.size(); i++ )
     {
+       //cout << pulseData[i][1] << " " << path2[i][1] << endl;
        outPath1.push_back( pulseData[i][1]*path1[i][1] );
        outPath2.push_back( pulseData[i][1]*path2[i][1] );
     }
@@ -320,6 +326,7 @@ vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double >
     vector<vector<double> > out;
     for (int i=0; i<outSize ; i++)
     {
+        //cout << outPath1FFTTime[i] << " " << outPath2FFTTime[i] << endl;
         vector<double> temp;
         temp.push_back(i*outSpacing);
         temp.push_back(outPath1FFTTime[i]-outPath2FFTTime[i]);              //Fuck... i dont remember, is that a - or a +? 
@@ -607,7 +614,12 @@ TH1D * myHybrid::histFunction ( TGraph * data, const char* title, const char* na
     int nBins = data->GetN();
     double binSize = data->GetX()[1]-data->GetX()[0];
     double lowBound =  data->GetX()[0] - binSize/2;
-    double hiBound = data->GetX()[nBins] + binSize/2;
+    double hiBound = data->GetX()[nBins-1] + binSize/2;
+    //cout << data->GetX()[0] << " " << data->GetX()[nBins-1] << endl;
+    //cout << "nBins: " << nBins << endl;
+    //cout << "binSize: " << binSize << endl;
+    //cout << "lowBound: " << lowBound << endl;
+    //cout << "hiBound: " << hiBound << endl;
     TH1D * out = new TH1D( title, name, nBins, lowBound, hiBound );
     for (int i=0; i< nBins; i++)
     {
@@ -627,9 +639,11 @@ void myHybrid::histShift ( TH1D * data, int shift )
 {
     int numBins = data->GetNbinsX();
     double dataSpacing = data->GetBinContent(1) - data->GetBinContent(0);
+    cout << numBins << " " << dataSpacing << endl;
+    cout << data->GetBinContent(10) << endl;
     for (int i=0;i<numBins;i++)
     {
-        if ( (i+shift) < 0 || numBins < (i+shift) )
+        if ( (i+shift) < 0 || numBins <= (i+shift) )                                          //my logic might not be right here.
         { 
             data->SetBinContent( (i+shift)*dataSpacing, 0 );
         }
@@ -638,31 +652,6 @@ void myHybrid::histShift ( TH1D * data, int shift )
             data->SetBinContent( (i+shift)*dataSpacing , data->GetBinContent(i+shift) );
         }
     }
+    cout << data->GetBinContent(10) << endl;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
