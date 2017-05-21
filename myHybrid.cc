@@ -150,8 +150,32 @@ int main()
         cout << "matched: (" << AC[i][0].real() << "," << AC[i][1].real() << " + i*" << AC[i][1].imag() << ")" << endl; 
     }
     */
-       
+    
     cout << "S21 and freqPulse data matched" << endl;
+    cout << endl << "==================================================" << endl << endl;
+    
+    
+    
+    cout << "Outputting path corrections to file" << endl;
+    // we want to output AC,AD,ect to a .dat file for future reference later 
+    // (so we dont need to load all 8 of the SA tables.
+    // format:  freq, AC, AD, BC, BD
+    
+    ofstream outputFile;
+    outputFile.open ("pathCorrections.dat");
+    outputFile << "Frequency [Hz] (re,im); AC correction (re,im); AD (re,im); BC (re,im); BD (re,im)" << endl; 
+    for (int i=0; i< AC.size(); i++)
+    {
+        outputFile << AC[i][0] << "; " << AC[i][1] << "; " << AD[i][1] << "; " << BC[i][1] << "; " << BD[i][1] << endl;
+    }
+    outputFile.close();
+    
+    cout << "AC, AD, BC, BD exported to file" << endl;
+    cout << endl << "==================================================" << endl << endl;
+    
+    
+    
+    
     
     /*
     // outputs for testing that extendS21 and match function is working.  It seems to be!
@@ -169,7 +193,6 @@ int main()
     cout << " pulseFreq spacing =  " << pulseFreq[1][0].real()-pulseFreq[0][0].real() << endl;
     */
     
-    cout << endl << "==================================================" << endl << endl;
     
     cout << "Applying transfer function to pulse, inverse FFT back into time domain and summing hybrid port outputs" << endl;
     
@@ -316,11 +339,11 @@ int main()
     outCDataHist->GetXaxis()->SetRangeUser(350,420);                               //set x axis
     outCDataHist->Draw();                                                          // Draw the histogram
     
-    mh.histShift(outCHist,1000);
+    mh.histShift(*outCHist,76);
     outCHist->SetLineColor(kRed);
     outCHist->Draw("same");
-    mh.histShift(hilbertHist,0);
-    hilbertHist->SetLineColor(kBlue);
+    mh.histShift(*hilbertHist, 25);
+    hilbertHist->SetLineColor(kGreen);
     hilbertHist->Draw("same");
     myCanv->SaveAs("plots/outCAll.jpg");
     myCanv->SaveAs("plots/outCAll.root");
@@ -370,6 +393,12 @@ int main()
 }
     
      
+
+
+
+
+
+
 
 
 

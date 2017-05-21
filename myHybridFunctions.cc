@@ -300,6 +300,7 @@ vector<vector<double> > myHybrid::pulsePadder ( vector< vector<double> > data , 
 /////myHybridSim function ///////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
+//for use when the pulse going into A and B (the h and v pulses) are the same
 vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double > > > pulseData, vector< vector <complex <double> > > path1, vector< vector< complex<double> > > path2)
 {
     //cout << "size of pulseData: " << pulseData.size() << endl;
@@ -316,6 +317,41 @@ vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double >
     }
     //do the inv FFTW
     int outSize = (pulseData.size()-1)*2;
+    
+    FFTWComplex * outPath1FFT = vectortoFFTW (outPath1);
+    double * outPath1FFTTime = doInvFFT(outSize, outPath1FFT); 
+    FFTWComplex * outPath2FFT = vectortoFFTW (outPath2);
+    double * outPath2FFTTime = doInvFFT(outSize, outPath2FFT);
+    
+    double outSpacing = 1/(pulseSpacing*outSize)*pow(10,9);                 //should that be outSize,or pulseData.size()
+    vector<vector<double> > out;
+    for (int i=0; i<outSize ; i++)
+    {
+        //cout << outPath1FFTTime[i] << " " << outPath2FFTTime[i] << endl;
+        vector<double> temp;
+        temp.push_back(i*outSpacing);
+        temp.push_back(outPath1FFTTime[i]-outPath2FFTTime[i]);              //Fuck... i dont remember, is that a - or a +? 
+                                                                            //logic says +, but I seem to remember -?
+        out.push_back(temp);
+    }
+    return out;
+}
+
+//for use when the signals going into A/B (the h/v pulses) are different!
+vector<vector<double > > myHybrid::myHybridSim(
+    vector<vector<complex< double > > > pulse1Data, vector<vector<complex< double > > > pulse2Data, 
+    vector<vector<complex <double> > > path1, vector<vector<complex<double> > > path2)
+{
+    double pulseSpacing = pulse1Data[1][0].real()-pulse1Data[0][0].real();
+    vector<complex<double> > outPath1;
+    vector<complex<double> > outPath2;
+    for ( int i=0; i<pulse1Data.size(); i++ )
+    {
+       outPath1.push_back( pulse1Data[i][1]*path1[i][1] );
+       outPath2.push_back( pulse2Data[i][1]*path2[i][1] );
+    }
+    //do the inv FFTW
+    int outSize = (pulse1Data.size()-1)*2;
     
     FFTWComplex * outPath1FFT = vectortoFFTW (outPath1);
     double * outPath1FFTTime = doInvFFT(outSize, outPath1FFT); 
@@ -495,6 +531,41 @@ vector<vector<double> > myHybrid::getPulseData( string fileLocation )
     return data;
 }
 
+vector<vector<complex<double> > > myHybrid::getCorrectionData( string fileLocation )
+{
+    vector<vector<complex<double> > > data;
+    string line;
+    ifstream myfile (fileLocation.c_str());
+    if (myfile.is_open())
+    {
+        cout << "file '" << fileLocation << "' opened" << endl;
+        int lineNum = 0;
+        while( getline(myfile,line) )
+        {
+            if (lineNum < 1) 
+            { 
+                lineNum++;
+                continue;                                   //skip the first line
+            }
+            vector<complex<double> > lineVector;
+            stringstream s(line);              
+            string field;                       
+            while (getline(s, field, ';'))
+            {
+                stringstream fs( field );
+                complex<double> temp = (0.0,0.0);
+                fs >> temp;
+                lineVector.push_back(temp);
+            }
+            data.push_back(lineVector);
+        }
+    }
+    myfile.close();
+    cout << "file '" << fileLocation << "' closed" << endl;
+    return data;
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /////Calibration function ///////////////////////////////////////////////////////
@@ -635,23 +706,104 @@ TH1D * myHybrid::histFunction ( TGraph * data, const char* title, const char* na
 /////////////////////////////////////////////////////////////////////////////////
 
 //function to apply a shift to the incoming data by a number of 'shift' bins
-void myHybrid::histShift ( TH1D * data, int shift )
+void myHybrid::histShift ( TH1D & data, int shift )
 {
-    int numBins = data->GetNbinsX();
-    double dataSpacing = data->GetBinContent(1) - data->GetBinContent(0);
+    int numBins = data.GetNbinsX();
+    double dataSpacing = data.GetBinContent(1) - data.GetBinContent(0);
     cout << numBins << " " << dataSpacing << endl;
-    cout << data->GetBinContent(10) << endl;
-    for (int i=0;i<numBins;i++)
+    cout << data.GetBinContent(10) << endl;
+    if (shift <= 0)
     {
-        if ( (i+shift) < 0 || numBins <= (i+shift) )                                          //my logic might not be right here.
-        { 
-            data->SetBinContent( (i+shift)*dataSpacing, 0 );
-        }
-        else
+        for (int i=0;i<numBins;i++)
         {
-            data->SetBinContent( (i+shift)*dataSpacing , data->GetBinContent(i+shift) );
+            if ( (i+shift) < 0 || numBins <= (i+shift) )                                          //my logic might not be right here.
+            { 
+                data.SetBinContent( i, 0.0 );
+            }
+            else
+            {
+                data.SetBinContent( i, data.GetBinContent(i-shift) );
+            }
         }
     }
-    cout << data->GetBinContent(10) << endl;
+    else
+    {
+        for (int i=numBins-1;i>=0;i--)
+        {
+            if ( (i+shift) < 0 || numBins <= (i+shift) )                                          //my logic might not be right here.
+            { 
+                data.SetBinContent( i, 0.0 );
+            }
+            else
+            {
+                data.SetBinContent( i, data.GetBinContent(i-shift) );
+            }
+        }
+    }
+    cout << data.GetBinContent(10) << endl;
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+///// hybrid path correction function ///////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+//we pass this a 2d vector of pulse data, 
+//it passes back the SAME 2d vector with our hybid sim having acted on it!
+void myHybrid::hybridPathCorrectionFunction ( vector<vector<double> > & APulse, vector<vector<double> > & BPulse)
+{
+    // 1) FFT pulse into freq domain
+    
+    //pulse's time coordinates need to be in [ns]!!!
+    vector<vector<complex<double> > > fAPulse = freqPulse(APulse);                   //in A
+    vector<vector<complex<double> > > fBPulse = freqPulse(BPulse);                   //in B
+    
+    
+    // 2) load in the path corrections
+    
+    string loc = "pathCorrections.dat";
+    vector<vector<complex<double> > > pathCorrections = getCorrectionData(loc);
+    
+    
+    // 3) do myHybrid sim stuff   
+    
+    vector<vector<complex<double> > > AC,AD,BC,BD;
+    for (int i=0; i<pathCorrections.size(); i++)
+    {
+        vector<complex<double> > temp;
+        temp.push_back(pathCorrections[i][0]);
+        temp.push_back(pathCorrections[i][1]);                                      //need to make sure this works.
+        AC.push_back(temp);
+        temp[1] = pathCorrections[i][2];
+        AD.push_back(temp);
+        BC.push_back(temp);
+        temp[1] = pathCorrections[i][3];
+        BD.push_back(temp);
+        temp[1] = pathCorrections[i][4];
+    }   
+    vector<vector<double> > outC = myHybridSim ( fAPulse, fBPulse, AC, BC );  
+    vector<vector<double> > outD = myHybridSim ( fBPulse, fAPulse, BD, AD );  
+    //NOTE: this outputs data in time units of [ns] with the first point set to t=0 
+    
+    
+    // 4) Alter APulse and BPulse
+    
+    for (int i=0; i<pathCorrections.size(); i++)
+    {
+        APulse[i] = outD[i];
+        BPulse[i] = outC[i];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
