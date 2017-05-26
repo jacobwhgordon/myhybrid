@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include <TCanvas.h>
+#include <TLegend.h>
 
 //AnitaTools libs
 #include "../../AnitaTools/include/FFTtools.h"
@@ -170,6 +171,14 @@ int main()
     }
     outputFile.close();
     
+    outputFile.open ("na.dat");
+    outputFile << "ACS21 (re,im); extendAC (re,im); AC (re,im)" << endl; 
+    for (int i=0; i< ACS21.size(); i++)
+    {
+        outputFile <<  ACS21[i][1] << "; " << extendAC[i][1] << "; " << AC[i][1] << endl;
+    }
+    outputFile.close();
+    
     cout << "AC, AD, BC, BD exported to file" << endl;
     cout << endl << "==================================================" << endl << endl;
     
@@ -232,8 +241,9 @@ int main()
     TH1D * pulseDataHist = mh.histFunction(pulseData, "name", "pulseData");    
 
     //note outC and outD are exactly the same with this methoid     
-    hilbertHist->Add(pulseDataHist,-1);                                               //subtract the hilbertHist fromthe pulseDataHist
-    hilbertHist->Scale(-1*pow(2,-0.5));                                               //nomalize by 1/root(2), extra neg because the 
+    hilbertHist->Add(pulseDataHist,1);                                               //subtract the hilbertHist fromthe pulseDataHist
+                                                                                     //note, it seems now we are adding them.... ummmmmmmmm
+    hilbertHist->Scale(1*pow(2,-0.5));                                               //nomalize by 1/root(2), extra neg because the 
                                                                                       //above subtraction was backwords
      
     hilbertHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                  //set y axis
@@ -315,12 +325,61 @@ int main()
     myCanv->SaveAs("plots/extendAC.jpg");                                           // saves the plot
     myCanv->SaveAs("plots/extendAC.root");
         
-    //plot the S21 AC matched    'AC'
-    TH1D * ACHist = mh.histFunction(AC, "name", "AC", 0);
+    //plot the S21 AC matched    'AC real'
+    TH1D * ACHist = mh.histFunction(AC, "name", "AC real", 0);
     ACHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
     ACHist->Draw();                                                                 // Draw the histogram
-    myCanv->SaveAs("plots/AC.jpg");                                                 // saves the plot
-    myCanv->SaveAs("plots/AC.root");
+    myCanv->SaveAs("plots/AC_real.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/AC_real.root");
+        
+    //plot the S21 AD matched    'AD real'
+    TH1D * ADHist = mh.histFunction(AD, "name", "AD real", 0);
+    ADHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
+    ADHist->Draw();                                                                 // Draw the histogram
+    myCanv->SaveAs("plots/AD_real.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/AD_real.root");
+        
+    //plot the S21 BC matched    'BC real'
+    TH1D * BCHist = mh.histFunction(BC, "name", "BC real", 0);
+    BCHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
+    BCHist->Draw();                                                                 // Draw the histogram
+    myCanv->SaveAs("plots/BC_real.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/BC_real.root");
+        
+    //plot the S21 BD matched    'BD real'
+    TH1D * BDHist = mh.histFunction(BD, "name", "BD real", 0);
+    BDHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
+    BDHist->Draw();                                                                 // Draw the histogram
+    myCanv->SaveAs("plots/BD_real.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/BD_real.root");
+        
+    //plot the S21 AC matched    'AC imag'
+    TH1D * ACimHist = mh.histFunction(AC, "name", "AC imag", 1);
+    ACimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    ACimHist->Draw();                                                               // Draw the histogram
+    myCanv->SaveAs("plots/AC_imag.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/AC_imag.root");
+        
+    //plot the S21 AD matched    'AD imag'
+    TH1D * ADimHist = mh.histFunction(AD, "name", "AD imag", 1);
+    ADimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    ADimHist->Draw();                                                               // Draw the histogram
+    myCanv->SaveAs("plots/AD_imag.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/AD_imag.root");
+        
+    //plot the S21 BC matched    'BC imag'
+    TH1D * BCimHist = mh.histFunction(BC, "name", "BC imag", 1);
+    BCimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    BCimHist->Draw();                                                               // Draw the histogram
+    myCanv->SaveAs("plots/BC_imag.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/BC_imag.root");
+        
+    //plot the S21 BD matched    'BD imag'
+    TH1D * BDimHist = mh.histFunction(BD, "name", "BD imag", 1);
+    BDimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    BDimHist->Draw();                                                               // Draw the histogram
+    myCanv->SaveAs("plots/BD_imag.jpg");                                            // saves the plot
+    myCanv->SaveAs("plots/BD_imag.root");
 
     //plot the outC   'outC'
     TH1D * outCHist = mh.histFunction(outC, "name", "outC");
@@ -336,15 +395,25 @@ int main()
     //hilbert and outC are already made, so just need to create outCData
     TH1D * outCDataHist = mh.histFunction(pulseDataOutC, "name", "pulseDataOutC");  
     outCDataHist->GetYaxis()->SetRangeUser(-0.16,0.16);                              //set y axis
-    outCDataHist->GetXaxis()->SetRangeUser(350,420);                               //set x axis
+    outCDataHist->GetXaxis()->SetRangeUser(350,390);                               //set x axis
     outCDataHist->Draw();                                                          // Draw the histogram
     
-    mh.histShift(*outCHist,76);
+    mh.histShift(*outCHist,-1);
     outCHist->SetLineColor(kRed);
     outCHist->Draw("same");
-    mh.histShift(*hilbertHist, 25);
+    mh.histShift(*hilbertHist, 34);
     hilbertHist->SetLineColor(kGreen);
     hilbertHist->Draw("same");
+    
+    
+    TLegend * legend = new TLegend(0.6,0.7,0.9,0.9);                      //(x1,y1,x2,y2)
+    //legend->SetHeader("The Legend Title","C");                          // option "C" allows to center the header
+    legend->AddEntry(outCHist,"Hybrid outC sim (my method)","l");
+    legend->AddEntry("outCDataHist","Hybrid outC data","l");
+    legend->AddEntry("hilbertHist","Hybrid outC sim (hilbert)","l");
+    legend->Draw();
+    
+    
     myCanv->SaveAs("plots/outCAll.jpg");
     myCanv->SaveAs("plots/outCAll.root");
     
@@ -393,6 +462,15 @@ int main()
 }
     
      
+
+
+
+
+
+
+
+
+
 
 
 

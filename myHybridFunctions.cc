@@ -234,10 +234,13 @@ vector< vector< complex<double> > > myHybrid::extendS21(vector< vector< complex<
             } 
             else if (fill == 1)
             {
-                double reFunction = reAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )*sin((2*PI/reLambda)*(data1Here-originalData1End) + rePhi);
-                double imFunction = imAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )*sin((2*PI/imLambda)*(data1Here-originalData1End) + imPhi);
+                double reFunction = reAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )
+                                                                     *sin((2*PI/reLambda)*(data1Here-originalData1End) + rePhi);
+                double imFunction = imAmp*( 1 - 1/( 1+exp(-10/(endPoint-originalData1End)*(data1Here-originalData1End) + 5) ) )
+                                                                     *sin((2*PI/imLambda)*(data1Here-originalData1End) + imPhi);
                 //note, this is what i had for mathematica
                 //if I want it to decay faster (Like i had in C++ before) then change endPoint->endPoint/2
+                //doesnt seem to have a significant effect though.
                 vector<complex<double> > temp;
                 temp.push_back(complex<double>(data1Here,0));
                 temp.push_back(complex<double>(reFunction,imFunction));
@@ -306,7 +309,7 @@ vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double >
     //cout << "size of pulseData: " << pulseData.size() << endl;
     //cout << "size of path1: " << path1.size() << endl;
     //cout << "size of path2: " << path2.size() << endl;
-    double pulseSpacing = pulseData[1][0].real()-pulseData[0][0].real();
+    double pulseSpacing = pulseData[1][0].real()-pulseData[0][0].real();    //in [Hz]
     vector<complex<double> > outPath1;
     vector<complex<double> > outPath2;
     for ( int i=0; i<pulseData.size(); i++ )
@@ -330,7 +333,7 @@ vector<vector<double > > myHybrid::myHybridSim(vector< vector< complex< double >
         //cout << outPath1FFTTime[i] << " " << outPath2FFTTime[i] << endl;
         vector<double> temp;
         temp.push_back(i*outSpacing);
-        temp.push_back(outPath1FFTTime[i]-outPath2FFTTime[i]);              //Fuck... i dont remember, is that a - or a +? 
+        temp.push_back(outPath1FFTTime[i]+outPath2FFTTime[i]);              //Fuck... i dont remember, is that a - or a +? 
                                                                             //logic says +, but I seem to remember -?
         out.push_back(temp);
     }
@@ -365,7 +368,7 @@ vector<vector<double > > myHybrid::myHybridSim(
         //cout << outPath1FFTTime[i] << " " << outPath2FFTTime[i] << endl;
         vector<double> temp;
         temp.push_back(i*outSpacing);
-        temp.push_back(outPath1FFTTime[i]-outPath2FFTTime[i]);              //Fuck... i dont remember, is that a - or a +? 
+        temp.push_back(outPath1FFTTime[i]+outPath2FFTTime[i]);              //Fuck... i dont remember, is that a - or a +? 
                                                                             //logic says +, but I seem to remember -?
         out.push_back(temp);
     }
@@ -586,7 +589,7 @@ vector< vector< complex< double > > >  myHybrid::rawToCalibReIm
     {
         vector<complex<double> > temp;
         double realTemp = pow(10, (hybridLogMag[i][1]-cableLogMag[i][1])/20) * cos( (PI/180)*(hybridPhase[i][1]-cablePhase[i][1]) ); 
-        double imagTemp = pow(10, (hybridLogMag[i][1]-cableLogMag[i][1])/20) * cos( (PI/180)*(hybridPhase[i][1]-cablePhase[i][1]) );
+        double imagTemp = pow(10, (hybridLogMag[i][1]-cableLogMag[i][1])/20) * sin( (PI/180)*(hybridPhase[i][1]-cablePhase[i][1]) );
         temp.push_back( complex<double> (hybridLogMag[i][0],0) );
         temp.push_back( complex<double> (realTemp,imagTemp) );
         out.push_back(temp);
@@ -793,6 +796,13 @@ void myHybrid::hybridPathCorrectionFunction ( vector<vector<double> > & APulse, 
         BPulse[i] = outC[i];
     }
 }
+
+
+
+
+
+
+
 
 
 
