@@ -353,6 +353,7 @@ vector<vector<double > > myHybrid::myHybridSim(
        outPath1.push_back( pulse1Data[i][1]*path1[i][1] );
        outPath2.push_back( pulse2Data[i][1]*path2[i][1] );
     }
+
     //do the inv FFTW
     int outSize = (pulse1Data.size()-1)*2;
     
@@ -395,7 +396,7 @@ vector<vector<double> > myHybrid::timePulse ( vector< vector<double> > data)
         prePad.push_back(temp);
     }
     vector<vector<double> > out = pulsePadder(prePad, pow(2,14), 0);        //pads to ~ 8 times the size with 0s
-    cout << prePad.size() << " " << out.size() << endl;
+    //cout << prePad.size() << " " << out.size() << endl;
     return out;
 }
 
@@ -403,6 +404,22 @@ vector<vector<double> > myHybrid::timePulse ( vector< vector<double> > data)
 vector<vector<complex<double> > > myHybrid::freqPulse( vector< vector<double> > data)
 {
     vector<vector<double> > timeData = timePulse(data);
+    
+    double doFFTinput [timeData.size()];
+    for (int i=0; i < timeData.size(); i++) 
+    { doFFTinput[i] = timeData[i][1]; } 
+    int lengthFFT = timeData.size()/2+1;                                                          //this is the size of the FFTWComplex * object we get back
+    FFTWComplex * pulseFFT = doFFT( timeData.size() , doFFTinput);
+    
+    double freqSpacing = 1/((timeData[1][0]-timeData[0][0])*pow(10,-9)*timeData.size());          //because pulseData is in units of [ns]
+    vector<vector<complex<double> > > out = FFTWtovector(pulseFFT,lengthFFT,freqSpacing); 
+    
+    return out;
+}
+
+//given timeData-ed data, returns freq domain pulse
+vector<vector<complex<double> > > myHybrid::freqPulseNotRaw( vector< vector<double> > timeData)
+{
     
     double doFFTinput [timeData.size()];
     for (int i=0; i < timeData.size(); i++) 
@@ -755,11 +772,15 @@ void myHybrid::histShift ( TH1D & data, int shift )
 void myHybrid::hybridPathCorrectionFunction ( vector<vector<double> > & APulse, vector<vector<double> > & BPulse)
 {
     // 1) FFT pulse into freq domain
+
+    //cout << "t= " << APulse[1][0] << " " << BPulse[1][0] << endl;
     
     //pulse's time coordinates need to be in [ns]!!!
-    vector<vector<complex<double> > > fAPulse = freqPulse(APulse);                   //in A
-    vector<vector<complex<double> > > fBPulse = freqPulse(BPulse);                   //in B
+    vector<vector<complex<double> > > fAPulse = freqPulseNotRaw(APulse);                   //in A
+    vector<vector<complex<double> > > fBPulse = freqPulseNotRaw(BPulse);                   //in B
+    //sould come out in units of [Hz]
     
+    //cout << "f= " << fAPulse[1][0] << " " << fBPulse[1][0] << endl;
     
     // 2) load in the path corrections
     
@@ -778,24 +799,41 @@ void myHybrid::hybridPathCorrectionFunction ( vector<vector<double> > & APulse, 
         AC.push_back(temp);
         temp[1] = pathCorrections[i][2];
         AD.push_back(temp);
-        BC.push_back(temp);
         temp[1] = pathCorrections[i][3];
-        BD.push_back(temp);
+        BC.push_back(temp);
         temp[1] = pathCorrections[i][4];
+        BD.push_back(temp);
     }   
+    
+    //for (int i=0; i<30; i++)
+    //{cout << AC[i][1] << " " << AD[i][1] << " " << BC[i][1] << " " << BD[i][1] << endl;}
+
+    
     vector<vector<double> > outC = myHybridSim ( fAPulse, fBPulse, AC, BC );  
     vector<vector<double> > outD = myHybridSim ( fBPulse, fAPulse, BD, AD );  
+    
     //NOTE: this outputs data in time units of [ns] with the first point set to t=0 
     
+    //cout << "t= " << outD[1][0] << " " << outC[1][0] << endl;    
     
     // 4) Alter APulse and BPulse
+    cout << pathCorrections.size() << " " << outC.size() << endl;
     
-    for (int i=0; i<pathCorrections.size(); i++)
+    for (int i=0; i<APulse.size(); i++)
     {
         APulse[i] = outD[i];
         BPulse[i] = outC[i];
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 

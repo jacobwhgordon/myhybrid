@@ -35,6 +35,7 @@ vector<vector<double > > myHybridSim(vector<vector<complex<double> > >, vector<v
 vector<vector<double > > myHybridSim(vector<vector<complex<double> > >, vector<vector<complex<double> > >, vector<vector<complex<double> > >, vector<vector<complex<double> > >);
 vector<vector<double> > timePulse ( vector< vector<double> >);
 vector<vector<complex<double> > > freqPulse( vector< vector<double> >);
+vector<vector<complex<double> > > freqPulseNotRaw( vector< vector<double> >);
 vector<vector<double> > getdBFunc(vector< vector< complex<double> > > );
 vector<vector<double> > getPhaseFunc( vector< vector< complex<double > > >);
 vector<vector<double> > getNAData( string );
@@ -51,6 +52,7 @@ void histShift ( TH1D &, int );
 void hybridPathCorrectionFunction ( vector<vector<double> > &, vector<vector<double> > & );
 
 };
+
 
 
 
