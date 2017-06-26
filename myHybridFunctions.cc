@@ -827,6 +827,55 @@ void myHybrid::hybridPathCorrectionFunction ( vector<vector<double> > & APulse, 
 }
 
 
+void myHybrid::hybridFilter ( FilteredAnitaEvent * event)
+{
+    //Get the waveforms from he root tree
+    AnalysisWaveform horz = getwf(event, 1, AnitaPol::kHorizontal);
+    AnalysisWaveform vert = getwf(event, 1, AnitaPol::kVertical);
+
+
+    //whats this do?
+    int N = TMath::Min(x->Neven(), y->Neven()); 
+
+    // Put the horz and vert into vectors
+    vector<vector<double> > horzVect, vertVect;
+    for (int i = 0; i < N; i++)
+    {
+        vector<double> temp;
+        temp.push_back(horz->GetX()[i]);
+        temp.push_back(horz->GetY()[i]);
+        horzVect.push_back(temp);
+        temp[0] = vert->GetX()[i];
+        temp[0] = vert->GetY()[i];
+        vertVect.push_back(temp);
+    }
+    
+    //For testing, if we made it this far, lets see what our data looks like!
+    
+    //Next do the hybrid conversion stuff, (ref the above function I guess?)    
+    
+    hybridPathCorrectionFunction ( * horzVect, * vertVect);
+
+    // Get the transofmed data into the root tree event... or whatever
+    
+    double new_horz[N] __attribute__((aligned)); 
+    double new_vert[N] __attribute__((aligned)); 
+
+    for (int i = 0; i < N; i++) 
+    {
+      new_horz[i] = horzVect[i][1];
+      new_vert[i] = vertVect[i][1];
+    }
+    
+    memcpy(horz->updateEven()->GetY(), new_horz, N * sizeof(double)); 
+    memcpy(vert->updateEven()->GetY(), new_vert, N * sizeof(double)); 
+
+    //whats this do?
+    x->forceEvenSize(N); 
+    y->forceEvenSize(N); 
+    
+}
+
 
 
 

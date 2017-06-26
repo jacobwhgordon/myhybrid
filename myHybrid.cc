@@ -243,8 +243,8 @@ int main()
     //note outC and outD are exactly the same with this methoid     
     hilbertHist->Add(pulseDataHist,1);                                               //subtract the hilbertHist fromthe pulseDataHist
                                                                                      //note, it seems now we are adding them.... ummmmmmmmm
-    hilbertHist->Scale(1*pow(2,-0.5));                                               //nomalize by 1/root(2), extra neg because the 
-                                                                                      //above subtraction was backwords
+    hilbertHist->Scale(1*pow(2,-0.5));                                               //nomalize by 1/root(2),
+                                                                                     
      
     hilbertHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                  //set y axis
     hilbertHist->GetXaxis()->SetRangeUser(350,450);                                   //set x axis
