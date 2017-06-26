@@ -10,7 +10,7 @@
 #include "TH1.h"
 
 //AnitaTools libs
-#include "../../AnitaTools/include/FFTtools.h"
+#include "FFTtools.h"
 
 using namespace std;
 using namespace FFTtools;

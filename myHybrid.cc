@@ -14,7 +14,7 @@
 #include <TLegend.h>
 
 //AnitaTools libs
-#include "../../AnitaTools/include/FFTtools.h"
+#include "FFTtools.h"
 
 #include "myHybridFunctions.h"
 

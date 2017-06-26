@@ -12,7 +12,7 @@
 #include "TH1.h"
 
 //AnitaTools libs
-#include "../../AnitaTools/include/FFTtools.h"
+#include "FFTtools.h"
 
 using namespace std;
 using namespace FFTtools;
@@ -826,6 +826,8 @@ void myHybrid::hybridPathCorrectionFunction ( vector<vector<double> > & APulse, 
     }
 }
 
+/* 
+//Not working yet, future how to integrate into anitatools
 
 void myHybrid::hybridFilter ( FilteredAnitaEvent * event)
 {
@@ -876,6 +878,7 @@ void myHybrid::hybridFilter ( FilteredAnitaEvent * event)
     
 }
 
+*/
 
 
 

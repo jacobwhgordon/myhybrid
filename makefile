@@ -1,12 +1,12 @@
 CC=g++
 
-IDIR1 =/home/gordon.661/root/root/include
-IDIR2 =/home/gordon.661/anita/AnitaTools/include 
+IDIR1 =${ROOTSYS}/include
+IDIR2 =${ANITA_UTIL_INSTALL_DIR}/include 
 
 ROOT_FLAGS = `root-config --cflags`
 CFLAGS=-I$(IDIR1) -I$(IDIR2) -g -O0 
 ROOT_LIBS = `root-config --libs`
-ANITA_LIBS = /home/gordon.661/anita/AnitaTools/lib/libAnitaAnalysis.so /home/gordon.661/anita/AnitaTools/lib/libAnitaAnalysisTools.so /home/gordon.661/anita/AnitaTools/lib/libAnitaCorrelator.so /home/gordon.661/anita/AnitaTools/lib/libAnitaEvent.so /home/gordon.661/anita/AnitaTools/lib/libAnitaMagicDisplay.so /home/gordon.661/anita/AnitaTools/lib/libRootFftwWrapper.so /home/gordon.661/anita/AnitaTools/lib/libUCorrelator.so
+ANITA_LIBS = ${ANITA_UTIL_INSTALL_DIR}/lib/libAnitaAnalysis.so ${ANITA_UTIL_INSTALL_DIR}/lib/libAnitaAnalysisTools.so ${ANITA_UTIL_INSTALL_DIR}/lib/libAnitaCorrelator.so ${ANITA_UTIL_INSTALL_DIR}/lib/libAnitaEvent.so ${ANITA_UTIL_INSTALL_DIR}/lib/libAnitaMagicDisplay.so ${ANITA_UTIL_INSTALL_DIR}/lib/libRootFftwWrapper.so ${ANITA_UTIL_INSTALL_DIR}/lib/libUCorrelator.so
 
 
 DEPS = myHybridFunctions.h FFTtools.h
