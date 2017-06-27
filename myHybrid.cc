@@ -35,12 +35,7 @@ int main()
     //import pulse
     cout << endl << "Importing Data" << endl;    
     loc = "data/PulseData/MiniFilter.csv";
-    vector<vector<double> > rawPulseData = mh.getPulseData(loc);  
-    
-    //getPulseData isnt working...
-    
-    
-    
+    vector<vector<double> > rawPulseData = mh.getPulseData(loc);      
       
     //this will pad the pulse, and also subtract off the biase in voltage and convert the time to units of [ns]
     vector<vector<double> > pulseData = mh.timePulse(rawPulseData);
@@ -54,10 +49,11 @@ int main()
     //cout << rawPulseData.size() << endl;
     cout << "Raw Pulse Data: (" << rawPulseData[0].size() << " by " << rawPulseData.size() << " entry array)" << endl;    
     cout << "Pulse Data: (" << pulseData[0].size() << " by " << pulseData.size() << " entry array)" << endl;
-    //for (int i; i < pulseData.size(); i++)
-    //{
-    //    cout << "t=" << pulseData[i][0] << "  V=" << pulseData[i][1] << endl;
-    //}
+
+    for (int i=pulseData.size()/2; i < (pulseData.size()/2+100); i++)
+    {
+        cout << "t=" << pulseData[i][0] << "  V=" << pulseData[i][1] << endl;
+    }
     
     //Import log mag data
     loc = "data/NetworkAnalizer/HYBRID_AC_LOGMAG_S21.CSV";
@@ -222,7 +218,7 @@ int main()
     cout << endl << "==================================================" << endl << endl;
     
 
-    //we want to test the hilbert methoid too.
+    //we want to test the hilbert method too.
     
     cout << "Hilbert Transform Method" << endl;
     double pulseX [pulseData.size()];
@@ -238,6 +234,7 @@ int main()
         
     //convert into hists
     TH1D * hilbertHist = mh.histFunction(hilbert, "name", "hilbertHist");
+    TH1D * hilbertHistWrong = mh.histFunction(hilbert, "name", "hilbertHist");
     TH1D * pulseDataHist = mh.histFunction(pulseData, "name", "pulseData");    
 
     //note outC and outD are exactly the same with this methoid     
@@ -247,10 +244,25 @@ int main()
                                                                                      
      
     hilbertHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                  //set y axis
-    hilbertHist->GetXaxis()->SetRangeUser(350,450);                                   //set x axis
+    hilbertHist->GetXaxis()->SetRangeUser(350,400);                                   //set x axis
+    hilbertHist->SetOption("HIST C");                                               //set to draw smooth "C"urve and without error bars
     hilbertHist->Draw();                                                              // Draw the histogram
     myCanv->SaveAs("plots/hilbertData.jpg");                                          // saves the plot
     myCanv->SaveAs("plots/hilbertData.root");
+    
+    //Make plot to show what happens when we do it the way shown in AnitaTools (the wrong way)...
+    hilbertHistWrong->Add(pulseDataHist,-1);
+    hilbertHistWrong->Scale(1*pow(2,-0.5));
+    
+    hilbertHistWrong->GetYaxis()->SetRangeUser(-0.2,0.2);                                  //set y axis
+    hilbertHistWrong->GetXaxis()->SetRangeUser(350,400);                                   //set x axis
+    hilbertHistWrong->SetOption("HIST C");                                                 //set to draw smooth "C"urve and without error bars
+    hilbertHistWrong->SetLineColor(kRed);
+    hilbertHistWrong->Draw();
+    hilbertHist->Draw("same HIST C");
+    myCanv->SaveAs("plots/hilbertDataWrong.jpg");                                          // saves the plot
+    myCanv->SaveAs("plots/hilbertDataWrong.root");
+    
     
     /*
     cout << "pulseData spacing: " << pulseData[1][0]-pulseData[0][0] << endl;
@@ -298,7 +310,9 @@ int main()
     //Plot the pulseData    
     //TH1D * pulseDataHist = mh.histFunction(pulseData, "name", "pulseData");       //this is done up higher now
     pulseDataHist->GetYaxis()->SetRangeUser(-0.2,0.2);                              //set y axis
+    //pulseDataHist->GetXaxis()->SetRangeUser(360,370);
     pulseDataHist->GetXaxis()->SetRangeUser(350,450);                               //set x axis
+    pulseDataHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     pulseDataHist->Draw();                                                          // Draw the histogram
     myCanv->SaveAs("plots/pulseData.jpg");                                          // saves the plot
     myCanv->SaveAs("plots/pulseData.root");
@@ -307,6 +321,7 @@ int main()
     TH1D * pulseFreqHist = mh.histFunction(pulseFreq, "name", "pulseFreq", 0);
     //pulseFreqHist->GetYaxis()->SetRangeUser(-0.00015, 0.00015);                   //this was EXACTLY the window in mathematica?
     pulseFreqHist->GetYaxis()->SetRangeUser(-8, 8);                                 //differenece in size of about a factor of 4000? thats... weird
+    pulseFreqHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     pulseFreqHist->Draw();                                                          // Draw the histogram
     myCanv->SaveAs("plots/pulseFreq.jpg");                                          // saves the plot
     myCanv->SaveAs("plots/pulseFreq.root");    
@@ -315,12 +330,14 @@ int main()
     TH1D * ACS21Hist = mh.histFunction(ACS21, "name", "raw AC", 0);
     ACS21Hist->GetYaxis()->SetRangeUser(-1,1);                                      //set y axis
     ACS21Hist->Draw();                                                              // Draw the histogram
+    ACS21Hist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     myCanv->SaveAs("plots/ACS21.jpg");                                              // saves the plot
     myCanv->SaveAs("plots/ACS21.root");
     
     //plot the S21 AC extended   'extendAC'
     TH1D * extendACHist = mh.histFunction(extendAC, "name", "extended AC", 0);
     extendACHist->GetYaxis()->SetRangeUser(-1,1);                                   //set y axis
+    extendACHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     extendACHist->Draw();                                                           // Draw the histogram
     myCanv->SaveAs("plots/extendAC.jpg");                                           // saves the plot
     myCanv->SaveAs("plots/extendAC.root");
@@ -328,6 +345,7 @@ int main()
     //plot the S21 AC matched    'AC real'
     TH1D * ACHist = mh.histFunction(AC, "name", "AC real", 0);
     ACHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
+    ACHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     ACHist->Draw();                                                                 // Draw the histogram
     myCanv->SaveAs("plots/AC_real.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/AC_real.root");
@@ -335,6 +353,7 @@ int main()
     //plot the S21 AD matched    'AD real'
     TH1D * ADHist = mh.histFunction(AD, "name", "AD real", 0);
     ADHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
+    ADHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     ADHist->Draw();                                                                 // Draw the histogram
     myCanv->SaveAs("plots/AD_real.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/AD_real.root");
@@ -342,6 +361,7 @@ int main()
     //plot the S21 BC matched    'BC real'
     TH1D * BCHist = mh.histFunction(BC, "name", "BC real", 0);
     BCHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
+    BCHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     BCHist->Draw();                                                                 // Draw the histogram
     myCanv->SaveAs("plots/BC_real.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/BC_real.root");
@@ -349,6 +369,7 @@ int main()
     //plot the S21 BD matched    'BD real'
     TH1D * BDHist = mh.histFunction(BD, "name", "BD real", 0);
     BDHist->GetYaxis()->SetRangeUser(-1,1);                                         //set y axis
+    BDHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     BDHist->Draw();                                                                 // Draw the histogram
     myCanv->SaveAs("plots/BD_real.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/BD_real.root");
@@ -356,6 +377,7 @@ int main()
     //plot the S21 AC matched    'AC imag'
     TH1D * ACimHist = mh.histFunction(AC, "name", "AC imag", 1);
     ACimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    ACimHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     ACimHist->Draw();                                                               // Draw the histogram
     myCanv->SaveAs("plots/AC_imag.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/AC_imag.root");
@@ -363,6 +385,7 @@ int main()
     //plot the S21 AD matched    'AD imag'
     TH1D * ADimHist = mh.histFunction(AD, "name", "AD imag", 1);
     ADimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    ADimHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     ADimHist->Draw();                                                               // Draw the histogram
     myCanv->SaveAs("plots/AD_imag.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/AD_imag.root");
@@ -370,6 +393,7 @@ int main()
     //plot the S21 BC matched    'BC imag'
     TH1D * BCimHist = mh.histFunction(BC, "name", "BC imag", 1);
     BCimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    BCimHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     BCimHist->Draw();                                                               // Draw the histogram
     myCanv->SaveAs("plots/BC_imag.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/BC_imag.root");
@@ -377,6 +401,7 @@ int main()
     //plot the S21 BD matched    'BD imag'
     TH1D * BDimHist = mh.histFunction(BD, "name", "BD imag", 1);
     BDimHist->GetYaxis()->SetRangeUser(-1,1);                                       //set y axis
+    BDimHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     BDimHist->Draw();                                                               // Draw the histogram
     myCanv->SaveAs("plots/BD_imag.jpg");                                            // saves the plot
     myCanv->SaveAs("plots/BD_imag.root");
@@ -385,6 +410,7 @@ int main()
     TH1D * outCHist = mh.histFunction(outC, "name", "outC");
     outCHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                   //set y axis
     outCHist->GetXaxis()->SetRangeUser(350,450);                                    //set x axis
+    outCHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     outCHist->Draw();                                                               // Draw the histogram
     myCanv->SaveAs("plots/outC.jpg");                                               // saves the plot
     myCanv->SaveAs("plots/outC.root");
@@ -396,14 +422,15 @@ int main()
     TH1D * outCDataHist = mh.histFunction(pulseDataOutC, "name", "pulseDataOutC");  
     outCDataHist->GetYaxis()->SetRangeUser(-0.16,0.16);                              //set y axis
     outCDataHist->GetXaxis()->SetRangeUser(350,390);                               //set x axis
+    outCDataHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
     outCDataHist->Draw();                                                          // Draw the histogram
     
     mh.histShift(*outCHist,-1);
     outCHist->SetLineColor(kRed);
-    outCHist->Draw("same");
+    outCHist->Draw("same HIST C");
     mh.histShift(*hilbertHist, 34);
     hilbertHist->SetLineColor(kGreen);
-    hilbertHist->Draw("same");
+    hilbertHist->Draw("same HIST C");
     
     
     TLegend * legend = new TLegend(0.6,0.7,0.9,0.9);                      //(x1,y1,x2,y2)
@@ -452,95 +479,32 @@ int main()
     myCanv->SaveAs("plots/fftTest.root");
         
     
+    //Lets have it print out sum squared... thing, or whatever.  
+    //basically V[0]^2+V[1]^2+ect...
+    double pulseDataOutCSumSqr=0;                                    //pulseDataOutC
+    double outCSumSqr=0;                                             //outC
+    double outCHilbertSumSqr=0;                                      //base this on hilbertHist (which is a hist, so its trickyer)
+
+    for (int i=0; i < pulseDataOutC.size(); i++) 
+    {
+        pulseDataOutCSumSqr = pulseDataOutCSumSqr +pow(pulseDataOutC[i][1],2);
+        outCSumSqr = outCSumSqr + pow(outC[i][1],2);
+        outCHilbertSumSqr = outCHilbertSumSqr + pow(hilbertHist->GetBinContent(i),2);
+        
+    }
+    cout << "Sum Squared Power:" << endl;
+    cout << "For Data: " << pulseDataOutCSumSqr << endl;
+    cout << "For Data Driven Method: " << outCSumSqr << endl;
+    cout << "For Hilbert Method: " << outCHilbertSumSqr << endl;
+    cout << "Data Driven Method/Data: " << outCSumSqr/pulseDataOutCSumSqr << endl;
+    cout << "Hilbert Method/Data: " << outCHilbertSumSqr/pulseDataOutCSumSqr << endl; 
     
-    
+
     
     cout << "Leaving Testing area." << endl;
     cout << endl << "==================================================" << endl << endl;
     
     return(0);
 }
-    
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
