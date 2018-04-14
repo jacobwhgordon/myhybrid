@@ -1,4 +1,10 @@
-//include file for hybrid functions
+/////////////////////////////////////////////////////
+//
+// include file for hybrid functions used in myHybrid
+//
+// by Jacob Gordon
+//
+/////////////////////////////////////////////////////
 
 #include <iostream>
 #include <vector>
@@ -656,6 +662,33 @@ FFTWComplex * myHybrid::vectortoFFTW (vector<complex<double> > data)
 
 
 /////////////////////////////////////////////////////////////////////////////////
+/////Inverse FFT function ///////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+
+//do the inv FFTW from the starting point of a freq domain pulse    
+vector<vector<double> > myHybrid::doInverseFFT( vector<vector<complex<double> > > data )
+{
+    int outSize = (data.size()-1)*2;
+    
+    FFTWComplex * dataFFT = vectortoFFTW (data);
+    double * dataFFTTime = doInvFFT(outSize, dataFFT); 
+    
+    double pulseSpacing = data[1][0].real()-data[0][0].real();
+    double outSpacing = 1/(pulseSpacing*outSize)*pow(10,9);     //should be in ns
+    vector<vector<double> > out;
+    for (int i=0; i<outSize ; i++)
+    {
+        vector<double> temp;
+        temp.push_back(i*outSpacing);
+        temp.push_back(dataFFTTime[i]);            
+        out.push_back(temp);
+    }
+    return out;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
 /////Histograming functions function ////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -879,6 +912,9 @@ void myHybrid::hybridFilter ( FilteredAnitaEvent * event)
 }
 
 */
+
+
+
 
 
 

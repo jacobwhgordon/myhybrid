@@ -1,4 +1,10 @@
-//include file for hybrid functions
+/////////////////////////////////////////////////////
+//
+// include file for hybrid functions used in myHybrid
+//
+// by Jacob Gordon 
+//
+/////////////////////////////////////////////////////
 
 #include <iostream>
 #include <vector>
@@ -19,7 +25,6 @@ class myHybrid
 {
 
 //Functions from myHybridFunctions.cc
-//I guess we need them to be public? and say that.
 
 public:
 
@@ -42,6 +47,7 @@ vector<vector<double> > getNAData( string );
 vector<vector<double> > getPulseData( string );
 vector<vector<complex<double> > > getCorrectionData( string );
 vector< vector< complex< double > > >  rawToCalibReIm (vector< vector<double> >,vector< vector<double> >,vector< vector<double> >,vector< vector<double> >);
+vector<vector<double> > doInverseFFT( vector<vector<complex<double> > > );
 vector<vector<complex<double> > > FFTWtovector ( FFTWComplex * , int, double );
 FFTWComplex * vectortoFFTW (vector<vector<complex<double> > >);
 FFTWComplex * vectortoFFTW (vector<complex<double> >);
@@ -52,6 +58,8 @@ void histShift ( TH1D &, int );
 void hybridPathCorrectionFunction ( vector<vector<double> > &, vector<vector<double> > & );
 
 };
+
+
 
 
 

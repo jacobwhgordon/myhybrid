@@ -1,4 +1,21 @@
-//Main function to do hybrid stuff
+/////////////////////////////////////////////////////////////////
+//
+// Main function to do hybrid stuff
+//
+//  -takes in pulse data
+//  -FFTs it
+//  -Applies hybrid transfer function to pulse data from:
+//  --Network analyser data
+//  --Correct and incorrect hilbert transfer methods
+//  --FFT phase shift method (used in iceMC)
+//  -Converts back to time domain
+//  -creates plots
+//
+//  functions refernced found in myHybridFunction.h
+// 
+// by Jacob Gordon
+//
+//////////////////////////////////////////////////////////////////
 
 #include <iostream>
 #include <vector>
@@ -21,7 +38,7 @@
 using namespace std;
 using namespace FFTtools;
 
-const double PI  =3.141592653589793238463;
+const double PI = 3.141592653589793238463;
 
 int main()
 {
@@ -37,7 +54,7 @@ int main()
     loc = "data/PulseData/MiniFilter.csv";
     vector<vector<double> > rawPulseData = mh.getPulseData(loc);      
       
-    //this will pad the pulse, and also subtract off the biase in voltage and convert the time to units of [ns]
+    //this will pad the pulse, and also subtract off the bias in voltage and convert the time to units of [ns]
     vector<vector<double> > pulseData = mh.timePulse(rawPulseData);
     //outcoming 2d vector should be 2^14 entries long.
 
@@ -220,7 +237,8 @@ int main()
 
     //we want to test the hilbert method too.
     
-    cout << "Hilbert Transform Method" << endl;
+    cout << "Other Transform Methods" << endl;
+    //hilbert test
     double pulseX [pulseData.size()];
     double pulseY [pulseData.size()];
     for (int i=0; i < pulseData.size() ; i++)
@@ -228,21 +246,17 @@ int main()
         pulseX[i] = pulseData[i][0];   
         pulseY[i] = pulseData[i][1];
     }
-    
     TGraph * pulseGraph = new TGraph(pulseData.size(), pulseX, pulseY);
-    TGraph * hilbert = getHilbertTransform(pulseGraph); 
-        
+    TGraph * hilbert = getHilbertTransform(pulseGraph);    
     //convert into hists
     TH1D * hilbertHist = mh.histFunction(hilbert, "name", "hilbertHist");
     TH1D * hilbertHistWrong = mh.histFunction(hilbert, "name", "hilbertHist");
     TH1D * pulseDataHist = mh.histFunction(pulseData, "name", "pulseData");    
-
-    //note outC and outD are exactly the same with this methoid     
+    //note outC and outD are exactly the same with this method     
     hilbertHist->Add(pulseDataHist,1);                                               //subtract the hilbertHist fromthe pulseDataHist
                                                                                      //note, it seems now we are adding them.... ummmmmmmmm
     hilbertHist->Scale(1*pow(2,-0.5));                                               //nomalize by 1/root(2),
                                                                                      
-     
     hilbertHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                  //set y axis
     hilbertHist->GetXaxis()->SetRangeUser(350,400);                                   //set x axis
     hilbertHist->SetOption("HIST C");                                               //set to draw smooth "C"urve and without error bars
@@ -262,6 +276,46 @@ int main()
     hilbertHist->Draw("same HIST C");
     myCanv->SaveAs("plots/hilbertDataWrong.jpg");                                          // saves the plot
     myCanv->SaveAs("plots/hilbertDataWrong.root");
+
+    //now we also wnat to test the 'standard' method which is used in iceMC
+    
+    //we need two new variables, r_ice and l_ice, and we need to use the inputs (h and v) in freq domain.  pulseFreq
+    vector<vector<complex<double> > > r_ice_freq;
+    vector<vector<complex<double> > > l_ice_freq;
+    for( int i=0; i<pulseFreq.size(); i++) 
+    {
+        vector<complex<double> > temp;
+        temp.push_back(complex<double>(pulseFreq[i][0].real(),pulseFreq[i][0].imag()));
+        temp.push_back(complex<double>(pow(2,-0.5)*(pulseFreq[i][1].real()+pulseFreq[i][1].imag()), pow(2,-0.5)*(pulseFreq[i][1].imag()-pulseFreq[i][1].real())));
+        r_ice_freq.push_back(temp);
+        temp[1]=complex<double>(pow(2,-0.5)*(pulseFreq[i][1].real()-pulseFreq[i][1].imag()), pow(2,-0.5)*(pulseFreq[i][1].imag()+pulseFreq[i][1].real()));
+        l_ice_freq.push_back(temp);
+    }
+    
+    //now fft back;
+    vector<vector<double> > r_ice = mh.doInverseFFT( r_ice_freq );
+    vector<vector<double> > l_ice = mh.doInverseFFT( l_ice_freq );
+        
+        
+    TH1D * outCDataHist = mh.histFunction(pulseDataOutC, "name", "pulseDataOutC");  
+    outCDataHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                  //set y axis
+    outCDataHist->GetXaxis()->SetRangeUser(350,400);                                   //set x axis
+    outCDataHist->Draw("Hist C");                                                      // Draw the histogram        
+    TH1D * iceRHist = mh.histFunction(r_ice, "name", "r_ice");
+    iceRHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                      //set y axis
+    iceRHist->GetXaxis()->SetRangeUser(350,400);                                       //set x axis
+    iceRHist->SetLineColor(kRed);
+    mh.histShift(*iceRHist,29);
+    iceRHist->Draw("Hist C Same");                                                     // Draw the histogram
+    TH1D * iceLHist = mh.histFunction(l_ice, "name", "l_ice");
+    iceLHist->GetYaxis()->SetRangeUser(-0.2,0.2);                                      //set y axis
+    iceLHist->GetXaxis()->SetRangeUser(350,400);                                       //set x axis
+    iceLHist->SetLineColor(kBlue);
+    mh.histShift(*iceLHist,36);
+    iceLHist->Draw("Hist C Same");
+    myCanv->SaveAs("plots/IceMCOut.jpg");                                              // saves the plot
+    myCanv->SaveAs("plots/IceMCOut.root");
+
     
     
     /*
@@ -419,7 +473,7 @@ int main()
     //make a plot with multiple lines on it
     //we want hilbert outC and outCdata all on one plot.
     //hilbert and outC are already made, so just need to create outCData
-    TH1D * outCDataHist = mh.histFunction(pulseDataOutC, "name", "pulseDataOutC");  
+    //TH1D * outCDataHist = mh.histFunction(pulseDataOutC, "name", "pulseDataOutC");  
     outCDataHist->GetYaxis()->SetRangeUser(-0.16,0.16);                              //set y axis
     outCDataHist->GetXaxis()->SetRangeUser(350,390);                               //set x axis
     outCDataHist->SetOption("HIST C");                                             //set to draw smooth "C"urve and without error bars
@@ -484,20 +538,28 @@ int main()
     double pulseDataOutCSumSqr=0;                                    //pulseDataOutC
     double outCSumSqr=0;                                             //outC
     double outCHilbertSumSqr=0;                                      //base this on hilbertHist (which is a hist, so its trickyer)
+    double l_iceSumSqr=0;
+    double r_iceSumSqr=0;
 
     for (int i=0; i < pulseDataOutC.size(); i++) 
     {
         pulseDataOutCSumSqr = pulseDataOutCSumSqr +pow(pulseDataOutC[i][1],2);
         outCSumSqr = outCSumSqr + pow(outC[i][1],2);
         outCHilbertSumSqr = outCHilbertSumSqr + pow(hilbertHist->GetBinContent(i),2);
+        l_iceSumSqr = l_iceSumSqr + pow(l_ice[i][1],2);
+        r_iceSumSqr = r_iceSumSqr + pow(r_ice[i][1],2);
         
     }
     cout << "Sum Squared Power:" << endl;
     cout << "For Data: " << pulseDataOutCSumSqr << endl;
     cout << "For Data Driven Method: " << outCSumSqr << endl;
     cout << "For Hilbert Method: " << outCHilbertSumSqr << endl;
+    cout << "For IceMC L Method: " << l_iceSumSqr << endl;
+    cout << "For IceMC R Method: " << r_iceSumSqr << endl;
     cout << "Data Driven Method/Data: " << outCSumSqr/pulseDataOutCSumSqr << endl;
     cout << "Hilbert Method/Data: " << outCHilbertSumSqr/pulseDataOutCSumSqr << endl; 
+    cout << "IceMC L Method/Data: " << l_iceSumSqr/pulseDataOutCSumSqr << endl; 
+    cout << "IceMC R Method/Data: " << r_iceSumSqr/pulseDataOutCSumSqr << endl; 
     
 
     
@@ -506,5 +568,12 @@ int main()
     
     return(0);
 }
+
+
+
+
+
+
+
 
 
